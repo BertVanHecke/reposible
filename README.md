@@ -12,4 +12,17 @@
 </p>
 
 <!-- readme: contributors -start -->
+<table>
+	<tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/BertVanHecke">
+                    <img src="https://avatars.githubusercontent.com/u/67365882?v=4" width="100;" alt="BertVanHecke"/>
+                    <br />
+                    <sub><b>Bert Van Hecke</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
+</table>
 <!-- readme: contributors -end -->
