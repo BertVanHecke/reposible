@@ -10,16 +10,20 @@ The MVP centers on a drag-and-drop visual pipeline builder. Users build end-to-e
 timeline
     title Reposible Roadmap
 
-    Q1 — MVP  : App ready with secure sign-in
-              : Drag-and-drop pipeline builder + YAML import/export
-              : Create, edit, and save pipelines in the builder
-              : Run pipelines locally with live status and logs
-              : Connect GitHub to auto-run on pushes and PRs
+    Q3 2025 (in progress)  
+            : App ready with secure sign-in
+            : Drag-and-drop pipeline builder + YAML import/export
+            : Create, edit, and save pipelines in the builder
 
-    Q2 — Enhancements : Better dashboard, notifications, and search
-                      : Smoother builder: auto-layout, groups, version history, YAML/JSON editing
-                      : More Git options: GitLab
-                      : Ready for production and easy to self-host
+    Q4 2025 (planned) 
+            : Run pipelines locally with live status and logs
+            : Smoother builder; auto-layout, groups, version history, YAML/JSON editing
+            : Connect GitHub to auto-run on pushes and PRs
+
+    Q1 2026 (planned)
+            : Better dashboard, notifications, and search
+            : More Git options; GitLab
+            : Ready for production and easy to self-host
 ```
 
 ### Core objectives for MVP:
@@ -28,21 +32,26 @@ timeline
 - One pipeline format (version 0) we validate with Zod. JSON is the source; YAML converts to and from it without losing info.
 - Import YAML into the canvas and export it back to YAML with nothing lost (including step order).
 
-## Q1 — MVP: Visual Builder, Local Runs, GitHub Integration
+## Q3 2025 — MVP: Visual Builder Foundation
 
 ### Goals
 
 - ✅ App ready with secure sign-in
 - ✅ Drag-and-drop pipeline builder + YAML import/export
 - ✅ Create, edit, and save pipelines in the builder
-- ✅ Run pipelines locally and watch live status and logs
+
+## Q4 2025 — Local Runs, Smoother Builder, GitHub Auto-runs
+
+### Goals
+
+- ✅ Run pipelines locally with live status and logs
+- ✅ Smoother builder: auto-layout, groups, version history, YAML/JSON editing
 - ✅ Connect GitHub to auto-run on pushes and PRs
 
-## Q2 — Enhanced UX, Advanced Features, Self-hosting
+## Q1 2026 — Dashboard, Notifications, More Git, Self-hosting
 
 ### Goals
 
 - ✅ Better dashboard, notifications, and search
-- ✅ Smoother builder: auto-layout, groups, version history, YAML/JSON editing
 - ✅ More Git options: GitLab
 - ✅ Ready for production and easy to self-host

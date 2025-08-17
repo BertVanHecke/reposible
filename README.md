@@ -44,8 +44,7 @@
 
 Our high-level plan lives in the project roadmap. See:
 
-- [ROADMAP.md](ROADMAP.md) — Q1/Q2 goals
-
+- [ROADMAP.md](ROADMAP.md) — Q3–Q4 2025 and Q1 2026 goals
 ## Contributing
 
 We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
