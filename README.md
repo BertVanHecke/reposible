@@ -38,7 +38,7 @@
 - Create, configure, and manage CI/CD pipelines
 - Visual pipeline editor with drag-and-drop functionality  
 - Real-time pipeline execution monitoring
-- Support for major version control systems (GitHub, GitLab, Bitbucket)
+- Support for major version control systems (GitHub, GitLab)
 
 ## Roadmap
 
