@@ -21,6 +21,7 @@
 ## Table of Contents
 
 - [Features](#features)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Contributors](#contributors)
 - [Security](#security)
@@ -38,6 +39,12 @@
 - Visual pipeline editor with drag-and-drop functionality  
 - Real-time pipeline execution monitoring
 - Support for major version control systems (GitHub, GitLab, Bitbucket)
+
+## Roadmap
+
+Our high-level plan lives in the project roadmap. See:
+
+- [ROADMAP.md](ROADMAP.md) — Q1/Q2 goals
 
 ## Contributing
 
