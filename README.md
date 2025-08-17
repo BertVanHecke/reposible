@@ -65,6 +65,13 @@ Thanks to all the amazing people who have contributed to Reposible!
                     <sub><b>Bert Van Hecke</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/turbobot-temp">
+                    <img src="https://avatars.githubusercontent.com/u/145653950?v=4" width="100;" alt="turbobot-temp"/>
+                    <br />
+                    <sub><b>turbobot-temp</b></sub>
+                </a>
+            </td>
 		</tr>
 	<tbody>
 </table>
