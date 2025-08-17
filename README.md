@@ -1,135 +1,128 @@
-# Turborepo starter
+<p align="center">
+  <img src="https://socialify.git.ci/Reposible-HQ/reposible/image?forks=1&amp;issues=1&amp;language=1&amp;logo=https%3A%2F%2Fcdn.prod.website-files.com%2F67d012e8c7d76a09078b13c8%2F6811e55bba58a01477a1de7a_Reposible%2520Logo.svg&amp;name=1&amp;owner=1&amp;pattern=Solid&amp;pulls=1&amp;stargazers=1&amp;theme=Light" alt="Reposible - Open-source repository management suite">
+</p>
 
-This Turborepo starter is maintained by the Turborepo core team.
+<h1 align="center">Reposible</h1>
 
-## Using this example
+<p align="center">
+  <strong>The open-source repository management suite</strong>
+</p>
 
-Run the following command:
+<p align="center">
+  <img src="https://img.shields.io/github/contributors/Reposible-HQ/reposible?style=for-the-badge" alt="GitHub Contributors">
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge" alt="PRs Welcome">
+  <img src="https://img.shields.io/github/issues-closed/Reposible-HQ/reposible?style=for-the-badge" alt="GitHub Issues Closed">
+  <img src="https://img.shields.io/github/commit-activity/m/Reposible-HQ/reposible?style=for-the-badge" alt="GitHub Commit Activity">
+  <img src="https://img.shields.io/github/license/Reposible-HQ/reposible?style=for-the-badge" alt="License">
+</p>
 
-```sh
-npx create-turbo@latest
-```
+---
 
-## What's inside?
+## Table of Contents
 
-This Turborepo includes the following packages/apps:
+- [Features](#features)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Contributors](#contributors)
+- [Security](#security)
+- [License](#license)
+- [Community & Support](#community--support)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Installation](#installation)
 
-### Apps and Packages
+## Features
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+> **Note**: Reposible is currently in active development. Features are being implemented progressively.
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- Create, configure, and manage CI/CD pipelines
+- Visual pipeline editor with drag-and-drop functionality  
+- Real-time pipeline execution monitoring
+- Support for major version control systems (GitHub, GitLab)
 
-### Utilities
+## Roadmap
 
-This Turborepo has some additional tools already setup for you:
+Our high-level plan lives in the project roadmap. See:
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- [ROADMAP.md](ROADMAP.md) — Q1/Q2 goals
 
-### Build
+## Contributing
 
-To build all apps and packages, run the following command:
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
 
-```
-cd my-turborepo
+## Contributors
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+Thanks to all the amazing people who have contributed to Reposible!
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+<!-- readme: contributors -start -->
+<table>
+	<tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/BertVanHecke">
+                    <img src="https://avatars.githubusercontent.com/u/67365882?v=4" width="100;" alt="BertVanHecke"/>
+                    <br />
+                    <sub><b>Bert Van Hecke</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
+</table>
+<!-- readme: contributors -end -->
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Security
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+If you discover a security vulnerability, please follow our [Security Policy](SECURITY.md) for responsible disclosure.
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+**Do not report security vulnerabilities through public GitHub issues.**
 
-### Develop
+Contact us directly at: **hello@reposible.com**
 
-To develop all apps and packages, run the following command:
+## License
 
-```
-cd my-turborepo
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+## Community & Support
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+### Show Your Support
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+If you find Reposible helpful, please consider:
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+- Starring the repository
+- Sharing on social media
+- Writing about your experience
+- Telling your colleagues
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+### Get Help
 
-### Remote Caching
+- [GitHub Discussions](https://github.com/Reposible-HQ/reposible/discussions) - Community Q&A
+- [Issues](https://github.com/Reposible-HQ/reposible/issues) - Bug reports and feature requests
+- [Email](mailto:hello@reposible.com) - Direct contact for sensitive matters
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Quick Start
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+**Coming Soon** - Detailed quick start instructions will be provided as the project develops.
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+## Documentation
 
-```
-cd my-turborepo
+**Coming Soon** - Comprehensive documentation will be available at [docs.reposible.com](https://docs.reposible.com)
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+For now, check out:
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+- [Contributing Guide](CONTRIBUTING.md) - How to contribute to the project
+- [Code of Conduct](CODE_OF_CONDUCT.md) - Community guidelines
+- [Security Policy](SECURITY.md) - Security best practices
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## Installation
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+**Coming Soon** - Detailed installation instructions will be provided as the project develops.
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
+---
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
+<div align="center">
 
-## Useful Links
+### Built with ❤️ by the community and Reposible team
 
-Learn more about the power of Turborepo:
+**[🌐 Website](https://reposible.com)** • **[📚 Documentation](https://docs.reposible.com)** • **[🐛 Issues](https://github.com/Reposible-HQ/reposible/issues)** • **[🤝 Contributing](CONTRIBUTING.md)**
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+</div>
