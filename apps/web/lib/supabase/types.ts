@@ -34,7 +34,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pipelines: {
+        Row: {
+          created_at: string
+          definition_json: Json
+          id: string
+          layout_json: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          definition_json: Json
+          id?: string
+          layout_json: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          definition_json?: Json
+          id?: string
+          layout_json?: Json
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
