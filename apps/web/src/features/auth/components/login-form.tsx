@@ -7,10 +7,10 @@ import {
   CardTitle,
 } from "@repo/ui/components/base/card";
 import { Label } from "@repo/ui/components/base/label";
-import Google from "@/../../apps/web/public/auth-providers/google.svg";
-import Discord from "@/../../apps/web/public/auth-providers/discord.svg";
-import GithubDark from "@/../../apps/web/public/auth-providers/github-dark.svg";
-import GithubLight from "@/../../apps/web/public/auth-providers/github-light.svg";
+import Google from "@/../../../apps/web/public/auth-providers/google.svg";
+import Discord from "@/../../../apps/web/public/auth-providers/discord.svg";
+import GithubDark from "@/../../../apps/web/public/auth-providers/github-dark.svg";
+import GithubLight from "@/../../../apps/web/public/auth-providers/github-light.svg";
 import { loginWithOTP } from "@/features/auth/actions";
 import OAuthButton, { OAuthButtonProps } from "./oauth-button";
 import SubmitButton from "./submit-button";
@@ -103,12 +103,13 @@ export async function LoginForm({
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:decoration-dotted [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
         {t("by-clicking-continue-you-agree-to-our")}{" "}
-        <a target="_blank" href="https://www.reposible.com/legal/terms-of-use">
+        <a target="_blank" rel="noreferrer" href="https://www.reposible.com/legal/terms-of-use">
           {t("terms-of-use")}
         </a>{" "}
         {t("and")}{" "}
         <a
           target="_blank"
+          rel="noreferrer"
           href="https://www.reposible.com/legal/privacy-policy"
         >
           {t("privacy-policy")}

@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import Image from "next/image";
-import { APPLICATION_NAME } from "@/../../apps/web/misc/constants";
+import { APPLICATION_NAME } from "@/misc/constants";
 
 export default function ApplicationIcon() {
   return (
