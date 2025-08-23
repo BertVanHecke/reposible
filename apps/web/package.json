@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "start-supabase": "dotenv -e ./.env -- supabase start --workdir ./src/lib"
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
@@ -29,6 +30,7 @@
     "@types/node": "^22.15.3",
     "@types/react": "19.1.0",
     "@types/react-dom": "19.1.1",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9.33.0",
     "tailwindcss": "^4",
     "typescript": "5.9.2"

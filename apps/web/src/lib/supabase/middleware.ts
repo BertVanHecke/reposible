@@ -62,9 +62,6 @@ export async function updateSession(
     otpSuccess: getPathname({ href: "/login/otp-success", locale }),
     authCallback: getPathname({ href: "/auth/callback", locale }),
     authConfirm: getPathname({ href: "/auth/confirm", locale }),
-    invited: getPathname({ href: "/invite", locale }),
-    onboardingTeam: getPathname({ href: "/onboarding/team", locale }),
-    onboardingInvite: getPathname({ href: "/onboarding/invite", locale }),
   };
 
   const loginUrl = new URL(paths.login, request.nextUrl.origin).toString();
@@ -75,53 +72,10 @@ export async function updateSession(
     paths.otpSuccess,
     paths.authCallback,
     paths.authConfirm,
-    paths.invited,
   ];
 
   if (!user && !publicPaths.includes(pathname)) {
     return NextResponse.redirect(loginUrl);
-  }
-
-  // Post-auth checks
-  if (user) {
-    const { data: userData } = await supabase
-      .from("users")
-      .select("onboarded, last_selected_team_id")
-      .eq("id", user.id)
-      .single()
-      .throwOnError();
-
-    const { onboarded, last_selected_team_id } = userData;
-
-    // Redirect onboarded users with selected team away from team creation page
-    if (
-      onboarded &&
-      last_selected_team_id &&
-      pathname === paths.onboardingTeam
-    ) {
-      const inviteUrl = new URL(paths.onboardingInvite, request.nextUrl.origin);
-      inviteUrl.searchParams.set("team_id", last_selected_team_id);
-      return NextResponse.redirect(inviteUrl.toString());
-    }
-
-    // Let invited users access the invited callback without redirect
-    if (!onboarded && pathname === paths.invited) {
-      return response;
-    }
-
-    // Redirect non-onboarded users to onboarding page
-    const onboardingRequired =
-      !onboarded &&
-      pathname !== paths.onboardingTeam &&
-      pathname !== paths.invited;
-
-    if (onboardingRequired) {
-      const onboardingUrl = new URL(
-        paths.onboardingTeam,
-        request.nextUrl.origin
-      ).toString();
-      return NextResponse.redirect(onboardingUrl);
-    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
