@@ -18,6 +18,7 @@ import {
   Send,
   Users,
 } from 'lucide-react';
+import { ThemeSwitcher } from '@repo/ui/components/base/theme-switcher';
 
 const badges = [
   {
@@ -79,7 +80,7 @@ export default async function HomePage() {
 
   return (
     <Fragment>
-      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
+      <header className="flex justify-between h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
         <div className="flex items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
@@ -90,6 +91,9 @@ export default async function HomePage() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+        </div>
+        <div className="px-4">
+          <ThemeSwitcher />
         </div>
       </header>
       <div className="flex h-full flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
