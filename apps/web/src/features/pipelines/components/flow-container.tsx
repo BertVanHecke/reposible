@@ -4,7 +4,6 @@ import {
   Background,
   Edge,
   Node,
-  MiniMap,
   OnConnect,
   Panel,
   ReactFlow,
@@ -14,19 +13,18 @@ import {
   useEdgesState,
   Position,
   ConnectionLineType,
+  useReactFlow,
 } from '@xyflow/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 import { useTheme } from 'next-themes';
 import { Button } from '@repo/ui/components/base/button';
 import '@xyflow/react/dist/style.css';
-import {
-  Sheet,
-} from '@repo/ui/components/base/sheet';
 import CircularRunNode from './nodes/circular-run-node';
 import CircularUsesNode from './nodes/circular-uses-node';
 import CircularJobNode from './nodes/circular-job-node';
 import CircularTriggerNode from './nodes/circular-trigger-node';
+import { NodeEditorPanel } from './node-editor-panel';
 
 import dagre from '@dagrejs/dagre';
 import { FlowDock } from '@/components/dock';
@@ -257,6 +255,9 @@ export default function FlowContainer() {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
+  const { fitView } = useReactFlow();
 
   const onConnect: OnConnect = useCallback(
     (params) =>
@@ -280,6 +281,54 @@ export default function FlowContainer() {
     [nodes, edges, setNodes, setEdges]
   );
 
+  const onNodeClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      setSelectedNode(node);
+      setIsPanelOpen(true);
+
+      // Center the selected node on the canvas
+      setTimeout(() => {
+        fitView({
+          nodes: [{ id: node.id }],
+          duration: 300,
+          padding: 0.3,
+        });
+      }, 100); // Small delay to ensure panel state is updated
+    },
+    [fitView]
+  );
+
+  const onUpdateNodeData = useCallback(
+    (nodeId: string, newData: Record<string, any>) => {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
+        )
+      );
+    },
+    [setNodes]
+  );
+
+  const onClosePanel = useCallback(() => {
+    setIsPanelOpen(false);
+    setSelectedNode(null);
+
+    // Zoom back out to show all nodes when closing the panel
+    setTimeout(() => {
+      fitView({
+        duration: 300,
+        padding: 0.2,
+      });
+    }, 100); // Small delay to ensure panel close animation starts
+  }, [fitView]);
+
+  const onPaneClick = useCallback(() => {
+    // Close the panel when clicking on the canvas background
+    if (isPanelOpen) {
+      onClosePanel();
+    }
+  }, [isPanelOpen, onClosePanel]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -289,32 +338,42 @@ export default function FlowContainer() {
   }
 
   return (
-    <div className="w-full h-full">
-      <Sheet>
-        <ReactFlow
-          colorMode={theme as 'light' | 'dark' | 'system'}
-          nodes={nodes}
-          nodeTypes={nodeTypes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitViewOptions={fitViewOptions}
-          defaultEdgeOptions={defaultEdgeOptions}
-          fitView
-        >
-          <Panel position="top-right">
-            <div className="flex gap-2">
-              <Button variant={'outline'}>Export</Button>
-            </div>
-          </Panel>
-          <Panel position="bottom-center">
-            <FlowDock onLayout={onLayout} />
-          </Panel>
-          <Background bgColor="var(--background)" />
-          <MiniMap />
-        </ReactFlow>
-      </Sheet>
+    <div className="w-full h-full relative overflow-hidden">
+      <ReactFlow
+        colorMode={theme as 'light' | 'dark' | 'system'}
+        nodes={nodes}
+        nodeTypes={nodeTypes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        onPaneClick={onPaneClick}
+        fitViewOptions={fitViewOptions}
+        defaultEdgeOptions={defaultEdgeOptions}
+        fitView
+      >
+        <Panel position="top-right">
+          <div className="flex gap-2">
+            <Button variant={'outline'}>Export</Button>
+          </div>
+        </Panel>
+        <Panel position="bottom-center">
+          <FlowDock onLayout={onLayout} />
+        </Panel>
+        <Background bgColor="var(--background)" />
+      </ReactFlow>
+
+      {/* Custom sliding panel that overlays the ReactFlow */}
+      <div
+        className={`absolute left-0 top-0 h-full w-96 bg-background border-r shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+          isPanelOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {selectedNode && (
+          <NodeEditorPanel node={selectedNode} onUpdate={onUpdateNodeData} onClose={onClosePanel} />
+        )}
+      </div>
     </div>
   );
 }

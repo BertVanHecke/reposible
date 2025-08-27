@@ -9,6 +9,7 @@ import { Separator } from '@repo/ui/components/base/separator';
 import { SidebarTrigger } from '@repo/ui/components/base/sidebar';
 import { ThemeSwitcher } from '@repo/ui/components/base/theme-switcher';
 import FlowContainer from '@/features/pipelines/components/flow-container';
+import { ReactFlowProvider } from '@xyflow/react';
 
 export default function PipelinesPage() {
   return (
@@ -29,7 +30,9 @@ export default function PipelinesPage() {
           <ThemeSwitcher />
         </div>
       </header>
-      <FlowContainer />
+      <ReactFlowProvider>
+        <FlowContainer />
+      </ReactFlowProvider>
     </Fragment>
   );
 }
