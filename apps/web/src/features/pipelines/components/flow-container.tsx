@@ -1,4 +1,5 @@
 'use client';
+import '@xyflow/react/dist/style.css';
 import {
   addEdge,
   Background,
@@ -16,10 +17,8 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import React, { useCallback, useEffect, useState } from 'react';
-import '@xyflow/react/dist/style.css';
 import { useTheme } from 'next-themes';
 import { Button } from '@repo/ui/components/base/button';
-import '@xyflow/react/dist/style.css';
 import CircularRunNode from './nodes/circular-run-node';
 import CircularUsesNode from './nodes/circular-uses-node';
 import CircularJobNode from './nodes/circular-job-node';
