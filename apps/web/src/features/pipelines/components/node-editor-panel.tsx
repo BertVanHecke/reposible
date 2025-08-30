@@ -246,7 +246,7 @@ export function NodeEditorPanel({ node, onUpdate, onClose }: NodeEditorPanelProp
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="size-(icon) p-0 hover:bg-destructive/20"
+            className="size-4 p-0 hover:bg-destructive/20"
           >
             <X className="size-4" />
           </Button>
