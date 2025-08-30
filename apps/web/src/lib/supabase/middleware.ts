@@ -15,8 +15,8 @@ export async function updateSession(
     "NEXT_PUBLIC_SUPABASE_URL"
   );
   const supabaseAnonKey = getEnvVar(
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY,
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
   );
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -35,14 +35,14 @@ export async function updateSession(
     },
   });
   // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  // IMPORTANT: DO NOT REMOVE auth.getUser()
+  // IMPORTANT: DO NOT REMOVE auth.getClaims()
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data,
+  } = await supabase.auth.getClaims();
 
   const pathname = request.nextUrl.pathname;
   const localeMatch = pathname.match(/^\/([a-zA-Z]{2})(\/|$)/);
@@ -74,7 +74,7 @@ export async function updateSession(
     paths.authConfirm,
   ];
 
-  if (!user && !publicPaths.includes(pathname)) {
+  if (!data?.claims && !publicPaths.includes(pathname)) {
     return NextResponse.redirect(loginUrl);
   }
 

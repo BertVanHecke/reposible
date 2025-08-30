@@ -12,10 +12,12 @@
     "start-supabase": "dotenv -e ./.env -- supabase start --workdir ./src/lib"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.5",
     "@repo/ui": "workspace:*",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.56.0",
     "@vercel/analytics": "^1.5.0",
+    "@xyflow/react": "^12.8.4",
     "lucide-react": "^0.526.0",
     "next": "^15.4.4",
     "next-intl": "^4.3.5",
