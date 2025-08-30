@@ -4,7 +4,7 @@ create type access as enum ('user', 'admin');
 -- Table definitions
 create table "users" (
   id uuid primary key default gen_random_uuid(),
-  full_name text not null,
+  full_name text,
   email text not null unique,
   avatar_url text,
   created_at timestamptz not null default now(),
