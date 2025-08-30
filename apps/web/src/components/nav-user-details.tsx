@@ -1,17 +1,13 @@
 import React, { Fragment } from 'react';
-import { createClient } from '@/lib/supabase/factories/server';
 import { Avatar, AvatarImage } from '@repo/ui/components/base/avatar';
+import { getCurrentAuthUser } from '@/features/auth/actions';
 
 export default async function NavUserDetails() {
-  const supabase = await createClient();
+  const user = await getCurrentAuthUser();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const avatarUrl = user?.user_metadata?.avatar_url;
-  const email = user?.email;
-  const userName = user?.user_metadata?.user_name;
+  const avatarUrl = user.avatar_url || '';
+  const email = user.email;
+  const userName = user.full_name;
 
   return (
     <Fragment>
