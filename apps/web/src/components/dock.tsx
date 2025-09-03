@@ -14,7 +14,7 @@ import {
   FlipHorizontal,
   FlipVertical,
   Play,
-  Briefcase,
+  Group,
   Terminal,
   Package,
 } from 'lucide-react';
@@ -35,7 +35,7 @@ const DATA = {
     },
     { 
       href: '#', 
-      icon: Briefcase, 
+      icon: Group, 
       label: 'Job', 
       color: 'text-blue-500',
       hoverBg: 'hover:bg-blue-500',

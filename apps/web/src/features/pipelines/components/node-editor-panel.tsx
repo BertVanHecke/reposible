@@ -6,7 +6,7 @@ import { Button } from '@repo/ui/components/base/button';
 import { Input } from '@repo/ui/components/base/input';
 import { Label } from '@repo/ui/components/base/label';
 import { Separator } from '@repo/ui/components/base/separator';
-import { Play, Briefcase, Terminal, Package, X } from 'lucide-react';
+import { Play, Group, Terminal, Package, X } from 'lucide-react';
 
 interface NodeEditorPanelProps {
   node: Node;
@@ -36,7 +36,7 @@ export function NodeEditorPanel({ node, onUpdate, onClose }: NodeEditorPanelProp
         };
       case 'jobNode':
         return {
-          icon: Briefcase,
+          icon: Group,
           title: 'Job Configuration',
           description: 'Set up job properties and dependencies',
           color: 'text-blue-500',
@@ -256,21 +256,6 @@ export function NodeEditorPanel({ node, onUpdate, onClose }: NodeEditorPanelProp
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
-          {/* Node Info */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Node ID</h3>
-              <p className="text-sm font-mono bg-muted/50 px-2 py-1 rounded border">{node.id}</p>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Node Type</h3>
-              <p className="text-sm bg-muted/50 px-2 py-1 rounded border">{node.type}</p>
-            </div>
-          </div>
-
-          <Separator />
-
           {/* Form Fields */}
           <div>
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Briefcase } from 'lucide-react';
+import { Group } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@repo/ui/components/base/hover-card';
 
 interface JobNodeData {
@@ -28,7 +28,7 @@ const CircularJobNode: React.FC<NodeProps> = ({ data }) => {
               position={Position.Right}
               className="w-3 h-3 !bg-blue-500 border-2 border-white !right-[-4px]"
             />
-            <Briefcase className="w-8 h-8 text-white" />
+            <Group className="w-8 h-8 text-white" />
           </div>
           <span className="text-xs font-semibold text-foreground">Job</span>
         </div>
@@ -38,7 +38,7 @@ const CircularJobNode: React.FC<NodeProps> = ({ data }) => {
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-white" />
+              <Group className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
               <h4 className="text-xs font-semibold">{nodeData.name}</h4>
