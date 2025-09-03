@@ -7,7 +7,6 @@ import { loginWithOTP } from '../actions';
 import { useTranslations } from 'next-intl';
 import { APPLICATION_NAME, localStorageKeys } from '@/misc/constants';
 import { Button } from '@repo/ui/components/base/button';
-import { Badge } from '@repo/ui/components/base/badge';
 import { RoundSpinner } from '@repo/ui/components/base/spinner';
 import { Input } from '@repo/ui/components/base/input';
 import {
@@ -20,6 +19,7 @@ import {
 } from '@repo/ui/components/base/form';
 import { toast } from 'sonner';
 import { useRouter } from '@/i18n/navigation';
+import LastUsedBadge from './last-used-badge';
 
 const lastUsedAuthMethod = 'email';
 
@@ -90,9 +90,7 @@ export default function LoginOTPForm() {
             {isSubmitting && <RoundSpinner size="sm" />}
             {isSubmitting ? t('sending-email') : t('login')}
           </Button>
-          {isLastUsed && (
-            <Badge className="absolute -top-2 -right-2 shadow-sm">{t('auth.lastUsed')}</Badge>
-          )}
+          <LastUsedBadge isLastUsed={isLastUsed} />
         </div>
       </form>
     </Form>

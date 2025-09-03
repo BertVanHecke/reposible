@@ -6,9 +6,9 @@ import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import { loginWithOAuth } from '@/features/auth/actions';
 import { useTranslations } from 'next-intl';
 import { Button } from '@repo/ui/components/base/button';
-import { Badge } from '@repo/ui/components/base/badge';
 import { localStorageKeys } from '@/misc/constants';
 import { toast } from 'sonner';
+import LastUsedBadge from './last-used-badge';
 
 export type OAuthButtonProps = {
   provider: Provider;
@@ -74,9 +74,7 @@ export default function OAuthButton({
         </Fragment>
         {t(text)}
       </Button>
-      {isLastUsed && (
-        <Badge className="absolute -top-2 -right-2 shadow-sm">{t('auth.lastUsed')}</Badge>
-      )}
+      <LastUsedBadge isLastUsed={isLastUsed} />
     </div>
   );
 }
