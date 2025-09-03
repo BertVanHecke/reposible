@@ -35,6 +35,7 @@
 ## Screenshots
 <p align="center">
 	<img alt="Reposible pipelines" src="https://github.com/user-attachments/assets/afcba8d7-d622-449a-984f-ad7cf6ec2ad8" />
+	<img alt="Reposible pipelines" src="https://github.com/user-attachments/assets/77bde25f-3a2e-4230-afc4-5ad0f66a3a72" />
 </p>
 
 ## Features
