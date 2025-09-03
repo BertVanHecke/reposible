@@ -17,3 +17,7 @@ export const messageMap: Record<ErrorReason, string> = {
   expired_token: "The invitation has expired.",
   expected_error: "An error occurred.",
 };
+
+export const localStorageKeys = {
+  lastUsedAuth: "lastUsedAuth",
+};

@@ -96,7 +96,6 @@ export async function loginWithOTP(formData: FormData) {
   }
 
   revalidatePath('/', 'layout');
-  await localeRedirect('/login/otp-success');
 }
 
 export async function signup(formData: FormData) {
