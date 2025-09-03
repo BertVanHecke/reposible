@@ -6,15 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/components/base/card';
-import { Label } from '@repo/ui/components/base/label';
-import { loginWithOTP } from '@/features/auth/actions';
 import OAuthButton, { OAuthButtonProps } from './oauth-button';
-import SubmitButton from './submit-button';
 import { getTranslations } from 'next-intl/server';
-import { Input } from '@repo/ui/components/base/input';
-import { APPLICATION_NAME, DISCORD_SVG, GITHUB_DARK_SVG, GITHUB_LIGHT_SVG } from '@/misc/constants';
+import { DISCORD_SVG, GITHUB_DARK_SVG, GITHUB_LIGHT_SVG } from '@/misc/constants';
 
 import { GOOGLE_SVG } from '@/misc/constants';
+import LoginOTPForm from './login-otp-form';
 
 const providers: OAuthButtonProps[] = [
   {
@@ -77,21 +74,7 @@ export async function LoginForm({
                 {t('or-login-with')}
               </span>
             </div>
-            <form action={loginWithOTP}>
-              <div className="grid gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">{t('email')}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    placeholder={`hello@${APPLICATION_NAME.toLowerCase()}.com`}
-                    required
-                  />
-                </div>
-                <SubmitButton />
-              </div>
-            </form>
+            <LoginOTPForm />
           </div>
         </CardContent>
       </Card>
