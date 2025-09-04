@@ -22,7 +22,7 @@ export type OAuthButtonProps = {
     alt: string;
   };
   text: string;
-  redirect?: string;
+  redirect?: string | string[];
 };
 
 export default function OAuthButton({
@@ -39,7 +39,7 @@ export default function OAuthButton({
     setIsLastUsed(lastUsedAuth === provider);
   }, [provider]);
 
-  async function handleOAuthLogin(provider: Provider, redirect?: string) {
+  async function handleOAuthLogin(provider: Provider, redirect?: string | string[]) {
     try {
       await loginWithOAuth(provider, redirect);
       localStorage.setItem(localStorageKeys.lastUsedAuth, provider);

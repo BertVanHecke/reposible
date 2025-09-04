@@ -51,12 +51,14 @@ export async function requireNoCurrentUser() {
   }
 }
 
-export async function loginWithOAuth(provider: Provider, redirect?: string) {
+export async function loginWithOAuth(provider: Provider, redirect?: string | string[]) {
   const supabase = await createClient();
   const baseUrl = await getBaseUrl();
 
-  const redirectTo = redirect
-    ? `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirect)}`
+  const normalizedRedirect = Array.isArray(redirect) ? redirect[0] : redirect;
+
+  const redirectTo = normalizedRedirect
+    ? `${baseUrl}/auth/callback?redirect=${encodeURIComponent(normalizedRedirect)}`
     : `${baseUrl}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({

@@ -8,8 +8,8 @@ import {
 import { Separator } from '@repo/ui/components/base/separator';
 import { SidebarTrigger } from '@repo/ui/components/base/sidebar';
 import { ThemeSwitcher } from '@repo/ui/components/base/theme-switcher';
-import Link from 'next/link';
 import { Button } from '@repo/ui/components/base/button';
+import { Link } from '@/i18n/navigation';
 
 export default function PipelinesPage() {
   return (

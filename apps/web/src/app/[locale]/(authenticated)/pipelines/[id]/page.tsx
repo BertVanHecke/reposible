@@ -13,14 +13,9 @@ import { ThemeSwitcher } from '@repo/ui/components/base/theme-switcher';
 import FlowContainer from '@/features/pipelines/components/flow-container';
 import { ReactFlowProvider } from '@xyflow/react';
 
-interface PipelinesDetailPageProps {
-  params: Promise<{
-    id: string;
-    locale: string;
-  }>;
-}
-
-export default async function PipelinesDetailPage({ params }: PipelinesDetailPageProps) {
+export default async function PipelinesDetailPage({
+  params,
+}: PageProps<'/[locale]/pipelines/[id]'>) {
   const { id } = await params;
   return (
     <Fragment>
