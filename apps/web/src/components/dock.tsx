@@ -10,57 +10,45 @@ import {
   TooltipTrigger,
 } from '@repo/ui/components/base/tooltip';
 import { cn } from '@repo/ui/lib/utils';
-import {
-  FlipHorizontal,
-  FlipVertical,
-  Play,
-  Group,
-  Terminal,
-  Package,
-} from 'lucide-react';
-import Link from 'next/link';
+import { FlipHorizontal, FlipVertical, Play, Group, Terminal, Package } from 'lucide-react';
 import React from 'react';
 
 export type IconProps = React.HTMLAttributes<SVGElement>;
 
 const DATA = {
   nodeTypes: [
-    { 
-      href: '#', 
-      icon: Play, 
-      label: 'Event', 
+    {
+      icon: Play,
+      label: 'Event',
       color: 'text-green-500',
       hoverBg: 'hover:bg-green-500',
-      hoverBorder: 'hover:border-green-600'
+      hoverBorder: 'hover:border-green-600',
     },
-    { 
-      href: '#', 
-      icon: Group, 
-      label: 'Job', 
+    {
+      icon: Group,
+      label: 'Job',
       color: 'text-blue-500',
       hoverBg: 'hover:bg-blue-500',
-      hoverBorder: 'hover:border-blue-600'
+      hoverBorder: 'hover:border-blue-600',
     },
-    { 
-      href: '#', 
-      icon: Terminal, 
-      label: 'Command', 
+    {
+      icon: Terminal,
+      label: 'Command',
       color: 'text-pink-500',
       hoverBg: 'hover:bg-pink-500',
-      hoverBorder: 'hover:border-pink-600'
+      hoverBorder: 'hover:border-pink-600',
     },
-    { 
-      href: '#', 
-      icon: Package, 
-      label: 'Action', 
+    {
+      icon: Package,
+      label: 'Action',
       color: 'text-purple-500',
       hoverBg: 'hover:bg-purple-500',
-      hoverBorder: 'hover:border-purple-600'
+      hoverBorder: 'hover:border-purple-600',
     },
   ],
   actions: [
-    { href: '#', icon: FlipHorizontal, label: 'Vertical Layout', value: 'TB' },
-    { href: '#', icon: FlipVertical, label: 'Horizontal Layout', value: 'LR' },
+    { icon: FlipHorizontal, label: 'Vertical Layout', value: 'TB' },
+    { icon: FlipVertical, label: 'Horizontal Layout', value: 'LR' },
   ],
 };
 
@@ -73,8 +61,8 @@ export function FlowDock({ onLayout }: { onLayout: (direction: 'TB' | 'LR') => v
             <DockIcon key={item.label}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link
-                    href={item.href}
+                  <Button
+                    variant={'link'}
                     aria-label={item.label}
                     className={cn(
                       'group size-12 rounded-full transition-all duration-200 flex items-center justify-center border-2 border-transparent',
@@ -82,8 +70,14 @@ export function FlowDock({ onLayout }: { onLayout: (direction: 'TB' | 'LR') => v
                       item.hoverBorder
                     )}
                   >
-                    <item.icon className={cn('size-4 transition-colors duration-200', item.color, 'group-hover:text-white')} />
-                  </Link>
+                    <item.icon
+                      className={cn(
+                        'size-4 transition-colors duration-200',
+                        item.color,
+                        'group-hover:text-white'
+                      )}
+                    />
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent className="dark">
                   <p>{item.label}</p>

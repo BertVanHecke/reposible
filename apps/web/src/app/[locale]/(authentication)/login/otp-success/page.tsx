@@ -47,7 +47,7 @@ export default async function OTPSuccessPage() {
             </p>
             <div className="mt-6">
               <Button variant="outline" asChild>
-                <Link href={"/login"}>{t("go-back-to-login")}</Link>
+                <Link href="/login">{t("go-back-to-login")}</Link>
               </Button>
             </div>
           </CardContent>

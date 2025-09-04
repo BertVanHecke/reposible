@@ -13,9 +13,9 @@ import {
 import NavUserDetails from './nav-user-details';
 import { NavMain } from './nav-main';
 import { NavUser } from './nav-user';
-import Link from 'next/link';
 import packageInfo from '../../package.json';
 import ApplicationIcon from './application-icon';
+import { Link } from '@/i18n/navigation';
 
 export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -23,8 +23,8 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
+            <Link href="/">
+              <SidebarMenuButton size="lg">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                   <ApplicationIcon />
                 </div>
@@ -32,8 +32,8 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                   <span className="font-medium">Reposible</span>
                   <span className="text-xs">v{packageInfo.version}</span>
                 </div>
-              </Link>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
