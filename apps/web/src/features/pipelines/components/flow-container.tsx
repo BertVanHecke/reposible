@@ -35,167 +35,9 @@ const nodeTypes = {
   triggerNode: CircularTriggerNode,
 };
 
-const initialNodes: Node[] = [
-  // Trigger
-  {
-    id: 'trigger-push',
-    type: 'triggerNode',
-    position: { x: 0, y: 0 },
-    data: { event: 'push', branches: ['main'] },
-  },
+const initialNodes: Node[] = [];
 
-  // Job nodes
-  {
-    id: 'install-job',
-    type: 'jobNode',
-    position: { x: 0, y: 0 },
-    data: { name: 'install', 'runs-on': 'ubuntu-latest' },
-  },
-  {
-    id: 'test-job',
-    type: 'jobNode',
-    position: { x: 0, y: 0 },
-    data: { name: 'test', 'runs-on': 'ubuntu-latest', needs: ['install'] },
-  },
-  {
-    id: 'build-job',
-    type: 'jobNode',
-    position: { x: 0, y: 0 },
-    data: { name: 'build', 'runs-on': 'ubuntu-latest', needs: ['test'] },
-  },
-  {
-    id: 'deploy-job',
-    type: 'jobNode',
-    position: { x: 0, y: 0 },
-    data: { name: 'deploy', 'runs-on': 'ubuntu-latest', needs: ['build'] },
-  },
-
-  // Install job steps
-  {
-    id: 'install-checkout',
-    type: 'usesNode',
-    data: { uses: 'actions/checkout@v4' },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'install-setup-node',
-    type: 'usesNode',
-    data: { uses: 'actions/setup-node@v4', with: { 'node-version': 18 } },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'install-npm-ci',
-    type: 'runNode',
-    data: { run: 'npm ci' },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'install-upload',
-    type: 'usesNode',
-    data: {
-      uses: 'actions/upload-artifact@v4',
-      with: { name: 'node_modules', path: 'node_modules' },
-    },
-    position: { x: 0, y: 0 },
-  },
-
-  // Test job steps
-  {
-    id: 'test-checkout',
-    type: 'usesNode',
-    data: { uses: 'actions/checkout@v4' },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'test-download',
-    type: 'usesNode',
-    data: {
-      uses: 'actions/download-artifact@v4',
-      with: { name: 'node_modules', path: 'node_modules' },
-    },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'test-run',
-    type: 'runNode',
-    data: { run: 'npm test' },
-    position: { x: 0, y: 0 },
-  },
-
-  // Build job steps
-  {
-    id: 'build-checkout',
-    type: 'usesNode',
-    data: { uses: 'actions/checkout@v4' },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'build-download',
-    type: 'usesNode',
-    data: {
-      uses: 'actions/download-artifact@v4',
-      with: { name: 'node_modules', path: 'node_modules' },
-    },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'build-run',
-    type: 'runNode',
-    data: { run: 'npm run build' },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'build-upload',
-    type: 'usesNode',
-    data: { uses: 'actions/upload-artifact@v4', with: { name: 'app-build', path: 'build' } },
-    position: { x: 0, y: 0 },
-  },
-
-  // Deploy job steps
-  {
-    id: 'deploy-download',
-    type: 'usesNode',
-    data: { uses: 'actions/download-artifact@v4', with: { name: 'app-build', path: 'build' } },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: 'deploy-run',
-    type: 'runNode',
-    data: { run: 'echo "Deploying..."\nrsync -avz --delete build/ user@your-server:/var/www/app' },
-    position: { x: 0, y: 0 },
-  },
-];
-
-const initialEdges: Edge[] = [
-  // Trigger to first job
-  { id: 'e-trigger-install', source: 'trigger-push', target: 'install-job' },
-
-  // Job dependencies
-  { id: 'e-install-test', source: 'install-job', target: 'test-job' },
-  { id: 'e-test-build', source: 'test-job', target: 'build-job' },
-  { id: 'e-build-deploy', source: 'build-job', target: 'deploy-job' },
-
-  // Install job steps
-  { id: 'e-install-job-checkout', source: 'install-job', target: 'install-checkout' },
-  { id: 'e-install-checkout-setup', source: 'install-checkout', target: 'install-setup-node' },
-  { id: 'e-install-setup-ci', source: 'install-setup-node', target: 'install-npm-ci' },
-  { id: 'e-install-ci-upload', source: 'install-npm-ci', target: 'install-upload' },
-
-  // Test job steps
-  { id: 'e-test-job-checkout', source: 'test-job', target: 'test-checkout' },
-  { id: 'e-test-checkout-download', source: 'test-checkout', target: 'test-download' },
-  { id: 'e-test-download-run', source: 'test-download', target: 'test-run' },
-
-  // Build job steps
-  { id: 'e-build-job-checkout', source: 'build-job', target: 'build-checkout' },
-  { id: 'e-build-checkout-download', source: 'build-checkout', target: 'build-download' },
-  { id: 'e-build-download-run', source: 'build-download', target: 'build-run' },
-  { id: 'e-build-run-upload', source: 'build-run', target: 'build-upload' },
-
-  // Deploy job steps
-  { id: 'e-deploy-job-download', source: 'deploy-job', target: 'deploy-download' },
-  { id: 'e-deploy-download-run', source: 'deploy-download', target: 'deploy-run' },
-];
+const initialEdges: Edge[] = [];
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2,
@@ -256,7 +98,152 @@ export default function FlowContainer() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
-  const { fitView } = useReactFlow();
+  const { getNodes, getEdges, fitView } = useReactFlow();
+
+  // Generate unique node ID
+  const generateNodeId = useCallback((type: string) => {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return `${type}-${timestamp}-${random}`;
+  }, []);
+
+  // Get default data for new nodes
+  const getDefaultNodeData = (nodeType: string) => {
+    switch (nodeType) {
+      case 'runNode':
+        return { run: 'echo "New step"' };
+      case 'usesNode':
+        return { uses: 'actions/checkout@v4' };
+      case 'jobNode':
+        return { name: 'new-job', 'runs-on': 'ubuntu-latest' };
+      case 'triggerNode':
+        return { event: 'push', branches: ['main'] };
+      default:
+        return {};
+    }
+  };
+
+  const relayout = useCallback(
+    (newNodeId: string) => {
+      const latestNodes = getNodes();
+      const latestEdges = getEdges();
+
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+        latestNodes,
+        latestEdges
+      ); // your dagre/elk function
+
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+
+      const newNode = layoutedNodes.find((node) => node.id === newNodeId);
+
+      if (newNode) {
+        setSelectedNode(newNode);
+        setIsPanelOpen(true);
+
+        // Center the selected node on the canvas
+        fitView({
+          nodes: [{ id: newNode.id }],
+          duration: 300,
+          padding: 0.3,
+        });
+      }
+    },
+    [getNodes, getEdges, setNodes, setEdges, setSelectedNode, setIsPanelOpen, fitView]
+  );
+
+  // Add node after an existing node (for sequential flow)
+  const onAddNodeAfter = useCallback(
+    (sourceNodeId: string, nodeType: 'runNode' | 'usesNode' | 'jobNode') => {
+      const newNodeId = generateNodeId(nodeType.replace('Node', ''));
+
+      const currentNodes = getNodes();
+      const sourceNode = currentNodes.find((n) => n.id === sourceNodeId);
+      if (!sourceNode) return currentNodes;
+
+      const newNode = {
+        id: newNodeId,
+        type: nodeType,
+        position: { x: 0, y: 0 },
+        data: {
+          ...getDefaultNodeData(nodeType),
+          onAddNodeAfter: onAddNodeAfter,
+        },
+        targetPosition: Position.Left,
+        sourcePosition: Position.Right,
+      };
+
+      setNodes((currentNodes) => {
+        const newNodes = [...currentNodes, newNode];
+        return newNodes;
+      });
+
+      // Create an edge from source to new node
+      const newEdge = {
+        id: `e-${sourceNodeId}-${newNodeId}`,
+        source: sourceNodeId,
+        target: newNodeId,
+        type: ConnectionLineType.SmoothStep,
+        animated: true,
+      };
+
+      setEdges((eds) => {
+        return [...eds, newEdge];
+      });
+
+      requestAnimationFrame(() => relayout(newNodeId));
+    },
+    [generateNodeId, setNodes, setEdges, getNodes, relayout]
+  );
+
+  // Add new node function (only for initial trigger from dock)
+  const onAddNode = useCallback(
+    (nodeType: 'triggerNode') => {
+      const newNode = {
+        id: generateNodeId(nodeType.replace('Node', '')),
+        type: nodeType,
+        position: {
+          x: 0,
+          y: 0,
+        },
+        data: {
+          ...getDefaultNodeData(nodeType),
+          onAddNodeAfter: onAddNodeAfter,
+        },
+        targetPosition: Position.Left,
+        sourcePosition: Position.Right,
+      };
+
+      setNodes((nds) => [...nds, newNode]);
+
+      // Select the newly created node
+      setSelectedNode(newNode);
+      setIsPanelOpen(true);
+    },
+    [generateNodeId, setNodes, onAddNodeAfter]
+  );
+
+  // Delete node function
+  const onDeleteNode = useCallback(
+    (nodeId: string) => {
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+
+      // Close panel if the deleted node was selected
+      if (selectedNode?.id === nodeId) {
+        setIsPanelOpen(false);
+        setSelectedNode(null);
+
+        // Zoom back out to show all nodes when closing the panel
+        fitView({
+          duration: 300,
+          padding: 0.2,
+        });
+      }
+    },
+    [setNodes, setEdges, selectedNode, fitView]
+  );
 
   const onConnect: OnConnect = useCallback(
     (params) =>
@@ -268,6 +255,9 @@ export default function FlowContainer() {
 
   const onLayout = useCallback(
     (direction: string) => {
+      setIsPanelOpen(false);
+      setSelectedNode(null);
+
       const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
         nodes,
         edges,
@@ -276,8 +266,14 @@ export default function FlowContainer() {
 
       setNodes([...layoutedNodes]);
       setEdges([...layoutedEdges]);
+
+      // Zoom back out to show all nodes when closing the panel
+      fitView({
+        duration: 300,
+        padding: 0.2,
+      });
     },
-    [nodes, edges, setNodes, setEdges]
+    [nodes, edges, setNodes, setEdges, fitView]
   );
 
   const onNodeClick = useCallback(
@@ -286,13 +282,11 @@ export default function FlowContainer() {
       setIsPanelOpen(true);
 
       // Center the selected node on the canvas
-      setTimeout(() => {
-        fitView({
-          nodes: [{ id: node.id }],
-          duration: 300,
-          padding: 0.3,
-        });
-      }, 100); // Small delay to ensure panel state is updated
+      fitView({
+        nodes: [{ id: node.id }],
+        duration: 300,
+        padding: 0.3,
+      });
     },
     [fitView]
   );
@@ -313,12 +307,10 @@ export default function FlowContainer() {
     setSelectedNode(null);
 
     // Zoom back out to show all nodes when closing the panel
-    setTimeout(() => {
-      fitView({
-        duration: 300,
-        padding: 0.2,
-      });
-    }, 100); // Small delay to ensure panel close animation starts
+    fitView({
+      duration: 300,
+      padding: 0.2,
+    });
   }, [fitView]);
 
   const onPaneClick = useCallback(() => {
@@ -358,7 +350,13 @@ export default function FlowContainer() {
           </div>
         </Panel>
         <Panel position="bottom-center">
-          <FlowDock onLayout={onLayout} />
+          <FlowDock
+            onLayout={onLayout}
+            onAddNode={onAddNode}
+            onAddNodeAfter={onAddNodeAfter}
+            hasNodes={nodes.length > 0}
+            selectedNode={selectedNode}
+          />
         </Panel>
         <Background bgColor="var(--background)" />
       </ReactFlow>
@@ -370,7 +368,12 @@ export default function FlowContainer() {
         }`}
       >
         {selectedNode && (
-          <NodeEditorPanel node={selectedNode} onUpdate={onUpdateNodeData} onClose={onClosePanel} />
+          <NodeEditorPanel
+            node={selectedNode}
+            onUpdate={onUpdateNodeData}
+            onClose={onClosePanel}
+            onDelete={() => onDeleteNode(selectedNode.id)}
+          />
         )}
       </div>
     </div>

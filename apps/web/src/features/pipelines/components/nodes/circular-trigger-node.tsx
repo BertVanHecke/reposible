@@ -43,11 +43,13 @@ const CircularTriggerNode: React.FC<NodeProps> = ({ data }) => {
                 <div className="text-xs text-muted-foreground">Success rate</div>
               </div>
             </div>
-            
+
             <div className="border-t pt-3">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-medium text-muted-foreground">EVENT</span>
-                <span className="text-xs font-mono bg-muted px-2 py-1 rounded">{nodeData.event}</span>
+                <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                  {nodeData.event}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs font-medium text-muted-foreground">BRANCHES</span>
