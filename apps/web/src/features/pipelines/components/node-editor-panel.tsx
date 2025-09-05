@@ -5,15 +5,16 @@ import { Node } from '@xyflow/react';
 import { Button } from '@repo/ui/components/base/button';
 import { Input } from '@repo/ui/components/base/input';
 import { Label } from '@repo/ui/components/base/label';
-import { Play, Group, Terminal, Package, X } from 'lucide-react';
+import { Play, Group, Terminal, Package, X, Trash2 } from 'lucide-react';
 
 interface NodeEditorPanelProps {
   node: Node;
   onUpdate: (nodeId: string, newData: Record<string, any>) => void;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
-export function NodeEditorPanel({ node, onUpdate, onClose }: NodeEditorPanelProps) {
+export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEditorPanelProps) {
   const [formData, setFormData] = useState<Record<string, any>>(node.data);
 
   const handleInputChange = (key: string, value: any) => {
@@ -263,6 +264,21 @@ export function NodeEditorPanel({ node, onUpdate, onClose }: NodeEditorPanelProp
             </h3>
             {renderFormFields()}
           </div>
+
+          {/* Delete Button */}
+          {onDelete && (
+            <div className="pt-4 border-t">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={onDelete}
+                className="w-full flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Node
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

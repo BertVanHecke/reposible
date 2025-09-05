@@ -44,6 +44,8 @@ export const nextJsConfig = [
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
       "react/react-in-jsx-scope": "off",
+      // Show warnings for missing dependencies in React hooks
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
 ];
