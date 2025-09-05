@@ -131,9 +131,12 @@ export function FlowDock({
   // Get available node types for the selected node
   const getAvailableNodeTypes = () => {
     if (!selectedNode || !onAddNodeAfter) return [];
-    
-    const nodeType = selectedNode.type as keyof typeof NODE_TYPE_OPTIONS;
-    return NODE_TYPE_OPTIONS[nodeType] || [];
+
+    if (selectedNode.type && selectedNode.type in NODE_TYPE_OPTIONS) {
+      const nodeType = selectedNode.type as keyof typeof NODE_TYPE_OPTIONS;
+      return NODE_TYPE_OPTIONS[nodeType] || [];
+    }
+    return [];
   };
 
   const availableNodeTypes = getAvailableNodeTypes();
