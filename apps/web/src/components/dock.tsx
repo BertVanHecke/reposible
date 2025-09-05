@@ -124,13 +124,13 @@ export function FlowDock({
 }: {
   onLayout: (direction: 'TB' | 'LR') => void;
   onAddNode: (nodeType: 'triggerNode') => void;
-  onAddNodeAfter?: (sourceNodeId: string, nodeType: 'runNode' | 'usesNode' | 'jobNode') => void;
+  onAddNodeAfter: (sourceNodeId: string, nodeType: 'runNode' | 'usesNode' | 'jobNode') => void;
   hasNodes?: boolean;
   selectedNode?: Node | null;
 }) {
   // Get available node types for the selected node
   const getAvailableNodeTypes = () => {
-    if (!selectedNode || !onAddNodeAfter) return [];
+    if (!selectedNode) return [];
 
     if (selectedNode.type && selectedNode.type in NODE_TYPE_OPTIONS) {
       const nodeType = selectedNode.type as keyof typeof NODE_TYPE_OPTIONS;
@@ -145,93 +145,91 @@ export function FlowDock({
     <div className="flex flex-col items-center justify-center">
       <TooltipProvider>
         <Dock direction="middle">
-          {!hasNodes ? (
-            // Show trigger button when no nodes exist
-            DATA.nodeTypes.map((item) => (
-              <DockIcon key={item.label}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={'link'}
-                      onClick={() => onAddNode(item.nodeType)}
-                      aria-label={item.label}
-                      className={cn(
-                        'group size-12 rounded-full transition-all duration-200 flex items-center justify-center border-2 border-transparent',
-                        item.hoverBg,
-                        item.hoverBorder
-                      )}
-                    >
-                      <item.icon
+          {!hasNodes
+            ? // Show trigger button when no nodes exist
+              DATA.nodeTypes.map((item) => (
+                <DockIcon key={item.label}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={'link'}
+                        onClick={() => onAddNode(item.nodeType)}
+                        aria-label={item.label}
                         className={cn(
-                          'size-4 transition-colors duration-200',
-                          item.color,
-                          'group-hover:text-white'
+                          'group size-12 rounded-full transition-all duration-200 flex items-center justify-center border-2 border-transparent',
+                          item.hoverBg,
+                          item.hoverBorder
                         )}
-                      />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="dark">
-                    <p>{item.label}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </DockIcon>
-            ))
-          ) : selectedNode && availableNodeTypes.length > 0 ? (
-            // Show node addition options when a node is selected
-            availableNodeTypes.map((item) => (
-              <DockIcon key={item.label}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={'link'}
-                      onClick={() => onAddNodeAfter!(selectedNode.id, item.nodeType)}
-                      aria-label={item.label}
-                      className={cn(
-                        'group size-12 rounded-full transition-all duration-200 flex items-center justify-center border-2 border-transparent',
-                        item.hoverBg,
-                        item.hoverBorder
-                      )}
-                    >
-                      <item.icon
-                        className={cn(
-                          'size-4 transition-colors duration-200',
-                          item.color,
-                          'group-hover:text-white'
-                        )}
-                      />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="dark">
-                    <p>{item.label}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </DockIcon>
-            ))
-          ) : (
-            // Show layout controls when nodes exist but no node is selected
-            DATA.actions.map((item) => (
-              <DockIcon key={item.label}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={'ghost'}
-                      onClick={() => onLayout(item.value as 'TB' | 'LR')}
-                      aria-label={item.label}
-                      className={cn(
-                        buttonVariants({ variant: 'ghost', size: 'icon' }),
-                        'size-12 rounded-full'
-                      )}
-                    >
-                      <item.icon className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="dark">
-                    <p>{item.label}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </DockIcon>
-            ))
-          )}
+                      >
+                        <item.icon
+                          className={cn(
+                            'size-4 transition-colors duration-200',
+                            item.color,
+                            'group-hover:text-white'
+                          )}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="dark">
+                      <p>{item.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </DockIcon>
+              ))
+            : selectedNode && availableNodeTypes.length > 0
+              ? // Show node addition options when a node is selected
+                availableNodeTypes.map((item) => (
+                  <DockIcon key={item.label}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={'link'}
+                          onClick={() => onAddNodeAfter(selectedNode.id, item.nodeType)}
+                          aria-label={item.label}
+                          className={cn(
+                            'group size-12 rounded-full transition-all duration-200 flex items-center justify-center border-2 border-transparent',
+                            item.hoverBg,
+                            item.hoverBorder
+                          )}
+                        >
+                          <item.icon
+                            className={cn(
+                              'size-4 transition-colors duration-200',
+                              item.color,
+                              'group-hover:text-white'
+                            )}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="dark">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </DockIcon>
+                ))
+              : // Show layout controls when nodes exist but no node is selected
+                DATA.actions.map((item) => (
+                  <DockIcon key={item.label}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={'ghost'}
+                          onClick={() => onLayout(item.value as 'TB' | 'LR')}
+                          aria-label={item.label}
+                          className={cn(
+                            buttonVariants({ variant: 'ghost', size: 'icon' }),
+                            'size-12 rounded-full'
+                          )}
+                        >
+                          <item.icon className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="dark">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </DockIcon>
+                ))}
         </Dock>
       </TooltipProvider>
     </div>
