@@ -279,6 +279,20 @@ export default function FlowContainer() {
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
       setSelectedNode(node);
+
+      // Center the selected node on the canvas
+      fitView({
+        nodes: [{ id: node.id }],
+        duration: 300,
+        padding: 0.3,
+      });
+    },
+    [fitView]
+  );
+
+  const onNodeDoubleClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      setSelectedNode(node);
       setIsPanelOpen(true);
 
       // Center the selected node on the canvas
@@ -339,6 +353,7 @@ export default function FlowContainer() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={onNodeDoubleClick}
         onPaneClick={onPaneClick}
         fitViewOptions={fitViewOptions}
         defaultEdgeOptions={defaultEdgeOptions}
@@ -363,7 +378,7 @@ export default function FlowContainer() {
 
       {/* Custom sliding panel that overlays the ReactFlow */}
       <div
-        className={`absolute left-0 top-0 h-full w-96 bg-background border-r shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`absolute left-0 top-0 h-full w-full sm:w-96 bg-background border-r shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
           isPanelOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
