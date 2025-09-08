@@ -27,6 +27,19 @@ import { NodeEditorPanel } from './node-editor-panel';
 
 import dagre from '@dagrejs/dagre';
 import { FlowDock } from '@/components/dock';
+import { 
+  PipelineNode, 
+  validateFlowData, 
+  createTriggerNode, 
+  createJobNode, 
+  createRunNode, 
+  createUsesNode,
+  TriggerNodeData,
+  JobNodeData,
+  RunNodeData,
+  UsesNodeData
+} from '../schemas/nodes';
+import { PipelineEdge } from '../schemas/edges';
 
 const nodeTypes = {
   runNode: CircularRunNode,
@@ -35,9 +48,9 @@ const nodeTypes = {
   triggerNode: CircularTriggerNode,
 };
 
-const initialNodes: Node[] = [];
+const initialNodes: PipelineNode[] = [];
 
-const initialEdges: Edge[] = [];
+const initialEdges: PipelineEdge[] = [];
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2,
@@ -52,7 +65,7 @@ const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 80;
 const nodeHeight = 80;
 
-const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => {
+const getLayoutedElements = (nodes: PipelineNode[], edges: PipelineEdge[], direction = 'LR') => {
   const isHorizontal = direction === 'LR';
   dagreGraph.setGraph({ rankdir: direction, nodesep: 100, ranksep: 150 });
 
@@ -94,11 +107,11 @@ const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
 export default function FlowContainer() {
   const { theme } = useTheme();
   const [isMounted, setIsMounted] = useState<boolean>(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
-  const { getNodes, getEdges, fitView } = useReactFlow();
+  const [selectedNode, setSelectedNode] = useState<PipelineNode | null>(null);
+  const { getNodes, getEdges, fitView } = useReactFlow<PipelineNode, PipelineEdge>();
+  const [nodes, setNodes, onNodesChange] = useNodesState<PipelineNode>(layoutedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<PipelineEdge>(layoutedEdges);
 
   // Generate unique node ID
   const generateNodeId = useCallback((type: string) => {
@@ -107,21 +120,51 @@ export default function FlowContainer() {
     return `${type}-${timestamp}-${random}`;
   }, []);
 
-  // Get default data for new nodes
-  const getDefaultNodeData = (nodeType: string) => {
-    switch (nodeType) {
-      case 'runNode':
-        return { run: 'echo "New step"' };
-      case 'usesNode':
-        return { uses: 'actions/checkout@v4' };
-      case 'jobNode':
-        return { name: 'new-job', 'runs-on': 'ubuntu-latest' };
-      case 'triggerNode':
-        return { event: 'push', branches: ['main'] };
-      default:
-        return {};
+  // Validation function for current pipeline
+  const validateCurrentPipeline = useCallback(() => {
+    const validation = validateFlowData(nodes, edges);
+
+    if (!validation.success) {
+      console.warn('Pipeline validation errors:', validation.errors);
+      return { isValid: false, errors: validation.errors };
     }
-  };
+
+    console.log('Pipeline is valid!');
+    return { isValid: true, errors: [] };
+  }, [nodes, edges]);
+
+  // Validation function for export
+  const handleExport = useCallback(() => {
+    const validation = validateCurrentPipeline();
+
+    if (!validation.isValid) {
+      // Show validation errors to user
+      alert(`Pipeline has validation errors:\n${validation.errors.join('\n')}`);
+      return;
+    }
+
+    // Export logic here
+    const exportData = {
+      nodes: validation.isValid ? nodes : [],
+      edges: validation.isValid ? edges : [],
+      metadata: {
+        name: 'Pipeline Export',
+        description: 'Generated from Reposible pipeline builder',
+        version: '1.0.0',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    };
+
+    // Download as JSON
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pipeline.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [validateCurrentPipeline, nodes, edges]);
 
   const relayout = useCallback(
     (newNodeId: string) => {
@@ -162,17 +205,33 @@ export default function FlowContainer() {
       const sourceNode = currentNodes.find((n) => n.id === sourceNodeId);
       if (!sourceNode) return currentNodes;
 
-      const newNode = {
-        id: newNodeId,
-        type: nodeType,
-        position: { x: 0, y: 0 },
-        data: {
-          ...getDefaultNodeData(nodeType),
-          onAddNodeAfter: onAddNodeAfter,
-        },
-        targetPosition: Position.Left,
-        sourcePosition: Position.Right,
-      };
+      const position = { x: 0, y: 0 };
+      let newNode: PipelineNode;
+
+      // Create typed node based on nodeType
+      switch (nodeType) {
+        case 'runNode':
+          const runData: RunNodeData = {
+            run: 'echo "New step"',
+          };
+          newNode = createRunNode(newNodeId, position, runData);
+          break;
+        case 'usesNode':
+          const usesData: UsesNodeData = {
+            uses: 'actions/checkout@v4',
+          };
+          newNode = createUsesNode(newNodeId, position, usesData);
+          break;
+        case 'jobNode':
+          const jobData: JobNodeData = {
+            name: 'new-job',
+            'runs-on': 'ubuntu-latest',
+          };
+          newNode = createJobNode(newNodeId, position, jobData);
+          break;
+        default:
+          throw new Error(`Unsupported node type: ${nodeType}`);
+      }
 
       setNodes((currentNodes) => {
         const newNodes = [...currentNodes, newNode];
@@ -200,20 +259,21 @@ export default function FlowContainer() {
   // Add new node function (only for initial trigger from dock)
   const onAddNode = useCallback(
     (nodeType: 'triggerNode') => {
-      const newNode = {
-        id: generateNodeId(nodeType.replace('Node', '')),
-        type: nodeType,
-        position: {
-          x: 0,
-          y: 0,
-        },
-        data: {
-          ...getDefaultNodeData(nodeType),
-          onAddNodeAfter: onAddNodeAfter,
-        },
-        targetPosition: Position.Left,
-        sourcePosition: Position.Right,
-      };
+      const nodeId = generateNodeId(nodeType.replace('Node', ''));
+      const position = { x: 0, y: 0 };
+      
+      let newNode: PipelineNode;
+      
+      if (nodeType === 'triggerNode') {
+        const triggerData: TriggerNodeData = {
+          event: 'push',
+          branches: ['main'],
+        };
+        newNode = createTriggerNode(nodeId, position, triggerData);
+      } else {
+        // This shouldn't happen given the type constraint, but for completeness
+        throw new Error(`Unsupported node type: ${nodeType}`);
+      }
 
       setNodes((nds) => [...nds, newNode]);
 
@@ -221,7 +281,7 @@ export default function FlowContainer() {
       setSelectedNode(newNode);
       setIsPanelOpen(true);
     },
-    [generateNodeId, setNodes, onAddNodeAfter]
+    [generateNodeId, setNodes]
   );
 
   // Delete node function
@@ -277,7 +337,7 @@ export default function FlowContainer() {
   );
 
   const onNodeClick = useCallback(
-    (event: React.MouseEvent, node: Node) => {
+    (event: React.MouseEvent, node: PipelineNode) => {
       setSelectedNode(node);
 
       // Center the selected node on the canvas
@@ -291,7 +351,7 @@ export default function FlowContainer() {
   );
 
   const onNodeDoubleClick = useCallback(
-    (event: React.MouseEvent, node: Node) => {
+    (event: React.MouseEvent, node: PipelineNode) => {
       setSelectedNode(node);
       setIsPanelOpen(true);
 
@@ -303,17 +363,6 @@ export default function FlowContainer() {
       });
     },
     [fitView]
-  );
-
-  const onUpdateNodeData = useCallback(
-    (nodeId: string, newData: Record<string, any>) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
-        )
-      );
-    },
-    [setNodes]
   );
 
   const onClosePanel = useCallback(() => {
@@ -333,6 +382,18 @@ export default function FlowContainer() {
       onClosePanel();
     }
   }, [isPanelOpen, onClosePanel]);
+
+  // Update node data
+  const onUpdateNodeData = useCallback(
+    (nodeId: string, newData: Record<string, any>) => {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } as PipelineNode : node
+        )
+      );
+    },
+    [setNodes]
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -361,7 +422,9 @@ export default function FlowContainer() {
       >
         <Panel position="top-right">
           <div className="flex gap-2">
-            <Button variant={'outline'}>Export</Button>
+            <Button variant={'outline'} onClick={handleExport}>
+              Export
+            </Button>
           </div>
         </Panel>
         <Panel position="bottom-center">
