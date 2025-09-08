@@ -1,31 +1,59 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Node } from '@xyflow/react';
 import { Button } from '@repo/ui/components/base/button';
 import { Input } from '@repo/ui/components/base/input';
 import { Label } from '@repo/ui/components/base/label';
 import { Play, Group, Terminal, Package, X, Trash2 } from 'lucide-react';
+import {
+  PipelineNode,
+  TriggerNodeData,
+  JobNodeData,
+  RunNodeData,
+  UsesNodeData,
+  PipelineNodeData,
+} from '../schemas/nodes';
 
 interface NodeEditorPanelProps {
-  node: Node;
-  onUpdate: (nodeId: string, newData: Record<string, any>) => void;
+  node: PipelineNode;
+  onUpdate: (nodeId: string, newData: PipelineNodeData) => void;
   onClose: () => void;
   onDelete?: () => void;
 }
 
 export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEditorPanelProps) {
-  const [formData, setFormData] = useState<Record<string, any>>(node.data);
+  const [formData, setFormData] = useState<PipelineNodeData>(node.data);
 
-  const handleInputChange = (key: string, value: any) => {
-    const newData = { ...formData, [key]: value };
+  const updateTriggerData = (
+    key: keyof TriggerNodeData,
+    value: TriggerNodeData[keyof TriggerNodeData]
+  ) => {
+    const newData = { ...formData, [key]: value } as TriggerNodeData;
+    setFormData(newData);
+    onUpdate(node.id, newData);
+  };
+
+  const updateJobData = (key: keyof JobNodeData, value: JobNodeData[keyof JobNodeData]) => {
+    const newData = { ...formData, [key]: value } as JobNodeData;
+    setFormData(newData);
+    onUpdate(node.id, newData);
+  };
+
+  const updateRunData = (key: keyof RunNodeData, value: RunNodeData[keyof RunNodeData]) => {
+    const newData = { ...formData, [key]: value } as RunNodeData;
+    setFormData(newData);
+    onUpdate(node.id, newData);
+  };
+
+  const updateUsesData = (key: keyof UsesNodeData, value: UsesNodeData[keyof UsesNodeData]) => {
+    const newData = { ...formData, [key]: value } as UsesNodeData;
     setFormData(newData);
     onUpdate(node.id, newData);
   };
 
   const getNodeTypeInfo = () => {
     switch (node.type) {
-      case 'triggerNode':
+      case 'triggerNode': {
         return {
           icon: Play,
           title: 'Event Trigger',
@@ -34,7 +62,8 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
           bgColor: 'bg-green-500/10',
           borderColor: 'border-green-500/20',
         };
-      case 'jobNode':
+      }
+      case 'jobNode': {
         return {
           icon: Group,
           title: 'Job Configuration',
@@ -43,7 +72,8 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
           bgColor: 'bg-blue-500/10',
           borderColor: 'border-blue-500/20',
         };
-      case 'runNode':
+      }
+      case 'runNode': {
         return {
           icon: Terminal,
           title: 'Run Command',
@@ -52,7 +82,8 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
           bgColor: 'bg-pink-500/10',
           borderColor: 'border-pink-500/20',
         };
-      case 'usesNode':
+      }
+      case 'usesNode': {
         return {
           icon: Package,
           title: 'Action Step',
@@ -61,7 +92,8 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
           bgColor: 'bg-purple-500/10',
           borderColor: 'border-purple-500/20',
         };
-      default:
+      }
+      default: {
         return {
           icon: Package,
           title: 'Unknown Node',
@@ -70,6 +102,7 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
           bgColor: 'bg-gray-500/10',
           borderColor: 'border-gray-500/20',
         };
+      }
     }
   };
 
@@ -78,15 +111,16 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
 
   const renderFormFields = () => {
     switch (node.type) {
-      case 'triggerNode':
+      case 'triggerNode': {
+        const triggerData = formData as TriggerNodeData;
         return (
           <div className="space-y-4">
             <div>
               <Label htmlFor="event">Event Type</Label>
               <Input
                 id="event"
-                value={(formData.event as string) || ''}
-                onChange={(e) => handleInputChange('event', e.target.value)}
+                value={triggerData.event || ''}
+                onChange={(e) => updateTriggerData('event', e.target.value)}
                 placeholder="push, pull_request, workflow_dispatch"
                 className="mt-1"
               />
@@ -98,9 +132,9 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
               <Label htmlFor="branches">Target Branches</Label>
               <Input
                 id="branches"
-                value={(formData.branches as string[])?.join(', ') || ''}
+                value={triggerData.branches?.join(', ') || ''}
                 onChange={(e) =>
-                  handleInputChange('branches', e.target.value.split(', ').filter(Boolean))
+                  updateTriggerData('branches', e.target.value.split(', ').filter(Boolean))
                 }
                 placeholder="main, develop, feature/*"
                 className="mt-1"
@@ -111,16 +145,17 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
             </div>
           </div>
         );
-
-      case 'jobNode':
+      }
+      case 'jobNode': {
+        const jobData = formData as JobNodeData;
         return (
           <div className="space-y-4">
             <div>
               <Label htmlFor="name">Job Name</Label>
               <Input
                 id="name"
-                value={(formData.name as string) || ''}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                value={jobData.name || ''}
+                onChange={(e) => updateJobData('name', e.target.value)}
                 placeholder="build, test, deploy"
                 className="mt-1"
               />
@@ -130,8 +165,8 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
               <Label htmlFor="runs-on">Runner Environment</Label>
               <Input
                 id="runs-on"
-                value={(formData['runs-on'] as string) || ''}
-                onChange={(e) => handleInputChange('runs-on', e.target.value)}
+                value={jobData['runs-on'] || ''}
+                onChange={(e) => updateJobData('runs-on', e.target.value)}
                 placeholder="ubuntu-latest, windows-latest, macos-latest"
                 className="mt-1"
               />
@@ -139,33 +174,19 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
                 The type of runner to use for this job
               </p>
             </div>
-            <div>
-              <Label htmlFor="needs">Job Dependencies</Label>
-              <Input
-                id="needs"
-                value={(formData.needs as string[])?.join(', ') || ''}
-                onChange={(e) =>
-                  handleInputChange('needs', e.target.value.split(', ').filter(Boolean))
-                }
-                placeholder="build, test"
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Jobs that must complete before this job runs
-              </p>
-            </div>
           </div>
         );
-
-      case 'runNode':
+      }
+      case 'runNode': {
+        const runData = formData as RunNodeData;
         return (
           <div className="space-y-4">
             <div>
               <Label htmlFor="run">Shell Command</Label>
               <textarea
                 id="run"
-                value={(formData.run as string) || ''}
-                onChange={(e) => handleInputChange('run', e.target.value)}
+                value={runData.run || ''}
+                onChange={(e) => updateRunData('run', e.target.value)}
                 placeholder="npm install&#10;npm run build&#10;echo 'Build complete!'"
                 className="w-full min-h-[120px] p-3 border rounded-md resize-vertical font-mono text-sm mt-1"
               />
@@ -175,16 +196,17 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
             </div>
           </div>
         );
-
-      case 'usesNode':
+      }
+      case 'usesNode': {
+        const usesData = formData as UsesNodeData;
         return (
           <div className="space-y-4">
             <div>
               <Label htmlFor="uses">Action</Label>
               <Input
                 id="uses"
-                value={(formData.uses as string) || ''}
-                onChange={(e) => handleInputChange('uses', e.target.value)}
+                value={usesData.uses || ''}
+                onChange={(e) => updateUsesData('uses', e.target.value)}
                 placeholder="actions/checkout@v4"
                 className="mt-1"
               />
@@ -196,11 +218,11 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
               <Label htmlFor="with">Parameters</Label>
               <textarea
                 id="with"
-                value={formData.with ? JSON.stringify(formData.with, null, 2) : ''}
+                value={usesData.with ? JSON.stringify(usesData.with, null, 2) : ''}
                 onChange={(e) => {
                   try {
                     const parsed = JSON.parse(e.target.value || '{}');
-                    handleInputChange('with', parsed);
+                    updateUsesData('with', parsed);
                   } catch {
                     // Invalid JSON, don't update
                   }
@@ -214,13 +236,14 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
             </div>
           </div>
         );
-
-      default:
+      }
+      default: {
         return (
           <div className="text-center text-muted-foreground py-8">
             <p>No editable fields for this node type.</p>
           </div>
         );
+      }
     }
   };
 

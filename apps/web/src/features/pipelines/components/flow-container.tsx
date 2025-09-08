@@ -3,8 +3,6 @@ import '@xyflow/react/dist/style.css';
 import {
   addEdge,
   Background,
-  Edge,
-  Node,
   OnConnect,
   Panel,
   ReactFlow,
@@ -19,6 +17,7 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@repo/ui/components/base/button';
+import { toast } from 'sonner';
 import CircularRunNode from './nodes/circular-run-node';
 import CircularUsesNode from './nodes/circular-uses-node';
 import CircularJobNode from './nodes/circular-job-node';
@@ -27,6 +26,20 @@ import { NodeEditorPanel } from './node-editor-panel';
 
 import dagre from '@dagrejs/dagre';
 import { FlowDock } from '@/components/dock';
+import {
+  PipelineNode,
+  validateFlowData,
+  createTriggerNode,
+  createJobNode,
+  createRunNode,
+  createUsesNode,
+  TriggerNodeData,
+  JobNodeData,
+  RunNodeData,
+  UsesNodeData,
+  PipelineNodeData,
+} from '../schemas/nodes';
+import { PipelineEdge } from '../schemas/edges';
 
 const nodeTypes = {
   runNode: CircularRunNode,
@@ -35,9 +48,9 @@ const nodeTypes = {
   triggerNode: CircularTriggerNode,
 };
 
-const initialNodes: Node[] = [];
+const initialNodes: PipelineNode[] = [];
 
-const initialEdges: Edge[] = [];
+const initialEdges: PipelineEdge[] = [];
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2,
@@ -52,7 +65,7 @@ const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 80;
 const nodeHeight = 80;
 
-const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => {
+const getLayoutedElements = (nodes: PipelineNode[], edges: PipelineEdge[], direction = 'LR') => {
   const isHorizontal = direction === 'LR';
   dagreGraph.setGraph({ rankdir: direction, nodesep: 100, ranksep: 150 });
 
@@ -94,11 +107,11 @@ const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
 export default function FlowContainer() {
   const { theme } = useTheme();
   const [isMounted, setIsMounted] = useState<boolean>(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
-  const { getNodes, getEdges, fitView } = useReactFlow();
+  const [selectedNode, setSelectedNode] = useState<PipelineNode | null>(null);
+  const { getNodes, getEdges, fitView } = useReactFlow<PipelineNode, PipelineEdge>();
+  const [nodes, setNodes, onNodesChange] = useNodesState<PipelineNode>(layoutedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<PipelineEdge>(layoutedEdges);
 
   // Generate unique node ID
   const generateNodeId = useCallback((type: string) => {
@@ -107,21 +120,71 @@ export default function FlowContainer() {
     return `${type}-${timestamp}-${random}`;
   }, []);
 
-  // Get default data for new nodes
-  const getDefaultNodeData = (nodeType: string) => {
-    switch (nodeType) {
-      case 'runNode':
-        return { run: 'echo "New step"' };
-      case 'usesNode':
-        return { uses: 'actions/checkout@v4' };
-      case 'jobNode':
-        return { name: 'new-job', 'runs-on': 'ubuntu-latest' };
-      case 'triggerNode':
-        return { event: 'push', branches: ['main'] };
-      default:
-        return {};
+  // Validation function for current pipeline
+  const validateCurrentPipeline = useCallback(() => {
+    const validation = validateFlowData(nodes, edges);
+
+    if (!validation.success) {
+      console.warn('Pipeline validation errors:', validation.errors);
+      return { isValid: false, errors: validation.errors };
     }
-  };
+
+    console.log('Pipeline is valid!');
+    return { isValid: true, errors: [] };
+  }, [nodes, edges]);
+
+  // Real-time validation with user feedback
+  const validateAndNotify = useCallback(
+    (newNodes: PipelineNode[], newEdges: PipelineEdge[], action: string) => {
+      const validation = validateFlowData(newNodes, newEdges);
+
+      if (!validation.success) {
+        // Show validation errors to user
+        toast.error(`Pipeline validation failed after ${action}`, {
+          description: validation.errors.join('\n'),
+        });
+        console.warn('Pipeline validation errors:', validation.errors);
+        return false;
+      } else {
+        console.log(`Pipeline validation succeeded after ${action}`);
+        return true;
+      }
+    },
+    []
+  );
+
+  // Validation function for export
+  const handleExport = useCallback(() => {
+    const validation = validateCurrentPipeline();
+
+    if (!validation.isValid) {
+      // Show validation errors to user
+      toast.error(`Pipeline has validation errors:\n${validation.errors.join('\n')}`);
+      return;
+    }
+
+    // Export logic here
+    const exportData = {
+      nodes: validation.isValid ? nodes : [],
+      edges: validation.isValid ? edges : [],
+      metadata: {
+        name: 'Pipeline Export',
+        description: 'Generated from Reposible pipeline builder',
+        version: '1.0.0',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    };
+
+    // Download as JSON
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pipeline.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [validateCurrentPipeline, nodes, edges]);
 
   const relayout = useCallback(
     (newNodeId: string) => {
@@ -159,25 +222,44 @@ export default function FlowContainer() {
       const newNodeId = generateNodeId(nodeType.replace('Node', ''));
 
       const currentNodes = getNodes();
+      const currentEdges = getEdges();
+
       const sourceNode = currentNodes.find((n) => n.id === sourceNodeId);
-      if (!sourceNode) return currentNodes;
+      if (!sourceNode) {
+        toast.error('Source node was not found. Please try again by adding a trigger node first.');
+        return currentNodes;
+      }
 
-      const newNode = {
-        id: newNodeId,
-        type: nodeType,
-        position: { x: 0, y: 0 },
-        data: {
-          ...getDefaultNodeData(nodeType),
-          onAddNodeAfter: onAddNodeAfter,
-        },
-        targetPosition: Position.Left,
-        sourcePosition: Position.Right,
-      };
+      const position = { x: 0, y: 0 };
+      let newNode: PipelineNode;
 
-      setNodes((currentNodes) => {
-        const newNodes = [...currentNodes, newNode];
-        return newNodes;
-      });
+      // Create typed node based on nodeType
+      switch (nodeType) {
+        case 'runNode': {
+          const runData: RunNodeData = {
+            run: 'echo "New step"',
+          };
+          newNode = createRunNode(newNodeId, position, runData);
+          break;
+        }
+        case 'usesNode': {
+          const usesData: UsesNodeData = {
+            uses: 'actions/checkout@v4',
+          };
+          newNode = createUsesNode(newNodeId, position, usesData);
+          break;
+        }
+        case 'jobNode': {
+          const jobData: JobNodeData = {
+            name: 'new-job',
+            'runs-on': 'ubuntu-latest',
+          };
+          newNode = createJobNode(newNodeId, position, jobData);
+          break;
+        }
+        default:
+          throw new Error(`Unsupported node type: ${nodeType}`);
+      }
 
       // Create an edge from source to new node
       const newEdge = {
@@ -188,47 +270,84 @@ export default function FlowContainer() {
         animated: true,
       };
 
-      setEdges((eds) => {
-        return [...eds, newEdge];
-      });
+      // Validate before applying changes
+      const newNodes = [...currentNodes, newNode];
+      const newEdges = [...currentEdges, newEdge];
+
+      const isValid = validateAndNotify(
+        newNodes,
+        newEdges,
+        `adding ${nodeType.replace('Node', ' node')}`
+      );
+
+      if (!isValid) {
+        return;
+      }
+
+      // Apply changes if validation passes
+      setNodes(newNodes);
+      setEdges(newEdges);
 
       requestAnimationFrame(() => relayout(newNodeId));
     },
-    [generateNodeId, setNodes, setEdges, getNodes, relayout]
+    [generateNodeId, setNodes, setEdges, getNodes, getEdges, relayout, validateAndNotify]
   );
 
   // Add new node function (only for initial trigger from dock)
   const onAddNode = useCallback(
     (nodeType: 'triggerNode') => {
-      const newNode = {
-        id: generateNodeId(nodeType.replace('Node', '')),
-        type: nodeType,
-        position: {
-          x: 0,
-          y: 0,
-        },
-        data: {
-          ...getDefaultNodeData(nodeType),
-          onAddNodeAfter: onAddNodeAfter,
-        },
-        targetPosition: Position.Left,
-        sourcePosition: Position.Right,
-      };
+      const newNodeId = generateNodeId(nodeType.replace('Node', ''));
+      const position = { x: 0, y: 0 };
 
-      setNodes((nds) => [...nds, newNode]);
+      let newNode: PipelineNode;
 
-      // Select the newly created node
-      setSelectedNode(newNode);
-      setIsPanelOpen(true);
+      if (nodeType === 'triggerNode') {
+        const triggerData: TriggerNodeData = {
+          event: 'push',
+          branches: ['main'],
+        };
+        newNode = createTriggerNode(newNodeId, position, triggerData);
+      } else {
+        // This shouldn't happen given the type constraint, but for completeness
+        throw new Error(`Unsupported node type: ${nodeType}`);
+      }
+
+      // Validate before applying changes
+      const newNodes = [...nodes, newNode];
+      const isValid = validateAndNotify(
+        newNodes,
+        edges,
+        `adding ${nodeType.replace('Node', ' node')}`
+      );
+
+      if (!isValid) {
+        return;
+      }
+
+      // Apply changes if validation passes
+      setNodes(newNodes);
+
+      requestAnimationFrame(() => relayout(newNodeId));
     },
-    [generateNodeId, setNodes, onAddNodeAfter]
+    [generateNodeId, setNodes, nodes, edges, validateAndNotify, relayout]
   );
 
   // Delete node function
   const onDeleteNode = useCallback(
     (nodeId: string) => {
-      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+      const newNodes = nodes.filter((node) => node.id !== nodeId);
+      const newEdges = edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
+
+      // Validate after deletion
+      const isValid = validateAndNotify(newNodes, newEdges, 'deleting node');
+
+      if (!isValid) {
+        return;
+      }
+
+      // Apply changes regardless (deletion should usually be allowed)
+      setNodes(newNodes);
+      setEdges(newEdges);
 
       // Close panel if the deleted node was selected
       if (selectedNode?.id === nodeId) {
@@ -242,15 +361,25 @@ export default function FlowContainer() {
         });
       }
     },
-    [setNodes, setEdges, selectedNode, fitView]
+    [setNodes, setEdges, selectedNode, fitView, nodes, edges, validateAndNotify]
   );
 
   const onConnect: OnConnect = useCallback(
-    (params) =>
-      setEdges((eds) =>
-        addEdge({ ...params, type: ConnectionLineType.SmoothStep, animated: true }, eds)
-      ),
-    [setEdges]
+    (params) => {
+      const newEdge = { ...params, type: ConnectionLineType.SmoothStep, animated: true };
+      const newEdges = addEdge(newEdge, edges);
+
+      // Validate before applying changes
+      const isValid = validateAndNotify(nodes, newEdges, 'connecting nodes');
+
+      if (!isValid) {
+        return;
+      }
+
+      // Apply changes if validation passes
+      setEdges(newEdges);
+    },
+    [setEdges, edges, nodes, validateAndNotify]
   );
 
   const onLayout = useCallback(
@@ -277,7 +406,7 @@ export default function FlowContainer() {
   );
 
   const onNodeClick = useCallback(
-    (event: React.MouseEvent, node: Node) => {
+    (event: React.MouseEvent, node: PipelineNode) => {
       setSelectedNode(node);
 
       // Center the selected node on the canvas
@@ -291,7 +420,7 @@ export default function FlowContainer() {
   );
 
   const onNodeDoubleClick = useCallback(
-    (event: React.MouseEvent, node: Node) => {
+    (event: React.MouseEvent, node: PipelineNode) => {
       setSelectedNode(node);
       setIsPanelOpen(true);
 
@@ -303,17 +432,6 @@ export default function FlowContainer() {
       });
     },
     [fitView]
-  );
-
-  const onUpdateNodeData = useCallback(
-    (nodeId: string, newData: Record<string, any>) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
-        )
-      );
-    },
-    [setNodes]
   );
 
   const onClosePanel = useCallback(() => {
@@ -333,6 +451,31 @@ export default function FlowContainer() {
       onClosePanel();
     }
   }, [isPanelOpen, onClosePanel]);
+
+  // Update node data
+  const onUpdateNodeData = useCallback(
+    (nodeId: string, newData: PipelineNodeData) => {
+      const newNodes = nodes.map((node) =>
+        node.id === nodeId
+          ? ({ ...node, data: newData } as PipelineNode)
+          : node
+      );
+
+      // Validate after data update
+      const isValid = validateAndNotify(newNodes, edges, 'updating node data');
+
+      if (!isValid) {
+        toast.warning('Node data updated but pipeline now has issues', {
+          description: 'Check the validation errors in the console',
+          duration: 5000,
+        });
+      }
+
+      // Apply changes regardless (user should be able to edit)
+      setNodes(newNodes);
+    },
+    [setNodes, nodes, edges, validateAndNotify]
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -361,7 +504,9 @@ export default function FlowContainer() {
       >
         <Panel position="top-right">
           <div className="flex gap-2">
-            <Button variant={'outline'}>Export</Button>
+            <Button variant={'outline'} onClick={handleExport}>
+              Export
+            </Button>
           </div>
         </Panel>
         <Panel position="bottom-center">
