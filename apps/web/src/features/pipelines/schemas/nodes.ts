@@ -61,10 +61,6 @@ const UsesNodeSchema = z.looseObject({
 export type UsesNodeData = z.infer<typeof UsesNodeDataSchema>;
 export type UsesNode = Node<UsesNodeData, 'usesNode'>;
 
-// Union of all node types
-export type PipelineNodeType = 'triggerNode' | 'jobNode' | 'runNode' | 'usesNode';
-export type PipelineNodeData = TriggerNodeData | JobNodeData | RunNodeData | UsesNodeData;
-export type PipelineNode = TriggerNode | JobNode | RunNode | UsesNode;
 const NodeSchema = z.discriminatedUnion('type', [
   TriggerNodeSchema,
   JobNodeSchema,
@@ -72,8 +68,12 @@ const NodeSchema = z.discriminatedUnion('type', [
   UsesNodeSchema,
 ]);
 
+// Union of all node types
+export type PipelineNodeType = 'triggerNode' | 'jobNode' | 'runNode' | 'usesNode';
+export type PipelineNodeData = TriggerNodeData | JobNodeData | RunNodeData | UsesNodeData;
+export type PipelineNode = TriggerNode | JobNode | RunNode | UsesNode;
+
 // Pipeline metadata schema
-export type PipelineMetadata = z.infer<typeof PipelineMetadataSchema>;
 const PipelineMetadataSchema = z.object({
   name: z.string().min(1, 'Pipeline name is required'),
   description: z.string().optional(),
@@ -82,13 +82,16 @@ const PipelineMetadataSchema = z.object({
   updatedAt: z.date().default(() => new Date()),
 });
 
+export type PipelineMetadata = z.infer<typeof PipelineMetadataSchema>;
+
 // Main pipeline schema
-type Pipeline = z.infer<typeof PipelineSchema>;
 const PipelineSchema = z.object({
   nodes: z.array(NodeSchema),
   edges: z.array(EdgeSchema),
   metadata: PipelineMetadataSchema,
 });
+
+type Pipeline = z.infer<typeof PipelineSchema>;
 
 // Custom validation functions
 function validateUniqueIds(nodes: PipelineNode[], edges: PipelineEdge[]) {
