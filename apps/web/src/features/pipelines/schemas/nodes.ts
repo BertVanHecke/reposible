@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EdgeSchema, PipelineEdge } from './edges';
-import { Edge, Node, Position } from '@xyflow/react';
+import { Node, Position } from '@xyflow/react';
 
 // Specific node type schemas that extend React Flow's Node
 // 1) Data schema for your custom fields
@@ -62,6 +62,8 @@ export type UsesNodeData = z.infer<typeof UsesNodeDataSchema>;
 export type UsesNode = Node<UsesNodeData, 'usesNode'>;
 
 // Union of all node types
+export type PipelineNodeType = 'triggerNode' | 'jobNode' | 'runNode' | 'usesNode';
+export type PipelineNodeData = TriggerNodeData | JobNodeData | RunNodeData | UsesNodeData;
 export type PipelineNode = TriggerNode | JobNode | RunNode | UsesNode;
 const NodeSchema = z.discriminatedUnion('type', [
   TriggerNodeSchema,
@@ -71,7 +73,7 @@ const NodeSchema = z.discriminatedUnion('type', [
 ]);
 
 // Pipeline metadata schema
-type PipelineMetadata = z.infer<typeof PipelineMetadataSchema>;
+export type PipelineMetadata = z.infer<typeof PipelineMetadataSchema>;
 const PipelineMetadataSchema = z.object({
   name: z.string().min(1, 'Pipeline name is required'),
   description: z.string().optional(),
@@ -228,9 +230,8 @@ function validatePipelineLogic(nodes: PipelineNode[], edges: PipelineEdge[]) {
   );
 
   if (orphanedNodes.length > 0) {
-    const orphanedNames = orphanedNodes.map((node) => `${node.id} (${node.type})`);
     throw new Error(
-      `Found disconnected nodes: ${orphanedNames.join(', ')}. All nodes except triggers must be connected to the pipeline flow.`
+      `Found disconnected nodes. All nodes except triggers must be connected to the pipeline flow.`
     );
   }
 }
@@ -276,10 +277,10 @@ export function validatePipeline(pipeline: Pipeline) {
 }
 
 // Helper function to validate just nodes and edges (for use in your flow container)
-export function validateFlowData(nodes: Node[], edges: Edge[]) {
+export function validateFlowData(nodes: PipelineNode[], edges: PipelineEdge[]) {
   const pipeline = {
-    nodes: nodes as PipelineNode[], // Type assertion - validation will catch any issues
-    edges: edges as PipelineEdge[],
+    nodes: nodes,
+    edges: edges,
     metadata: {
       name: 'Untitled Pipeline',
       description: '',
