@@ -2,69 +2,14 @@
 
 import React from 'react';
 import { Button } from '@repo/ui/components/base/button';
-import { Input } from '@repo/ui/components/base/input';
-import { Label } from '@repo/ui/components/base/label';
-import { Badge } from '@repo/ui/components/base/badge';
-import { Play, Group, Terminal, Package, X, Trash2, GripVertical } from 'lucide-react';
+import { Play, Group, Package, X, Trash2 } from 'lucide-react';
 import { KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
-function SortableStepItem({ step }: any) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: step.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-3 p-3 bg-muted/50 rounded-lg ${
-        isDragging ? 'opacity-50 shadow-lg' : ''
-      }`}
-    >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
-      >
-        <GripVertical className="w-4 h-4" />
-      </div>
-
-      <div className="flex-shrink-0">
-        {step.type === 'runNode' ? (
-          <Terminal className="w-4 h-4 text-pink-500" />
-        ) : (
-          <Package className="w-4 h-4 text-purple-500" />
-        )}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium truncate">
-            {step.data.name || (step.type === 'runNode' ? 'Run Command' : 'Action Step')}
-          </span>
-          <Badge variant="outline" className="text-xs shrink-0">
-            #{step.data.order}
-          </Badge>
-        </div>
-        <div className="text-xs text-muted-foreground truncate">
-          {step.type === 'runNode' ? step.data.run.split('\n')[0] : step.data.uses}
-        </div>
-      </div>
-    </div>
-  );
-}
-import { PipelineNode, JobNodeData, PipelineNodeData } from '../../schemas/nodes';
+import { PipelineNode, PipelineNodeData } from '../../schemas/nodes';
 import { PipelineEdge } from '../../schemas/edges';
 import TriggerNodeForm from './trigger-node-form';
+import JobNodeForm from './job-node-form';
 
 interface NodeEditorPanelProps {
   node: PipelineNode;
@@ -89,7 +34,7 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
       case 'triggerNode': {
         return {
           icon: Play,
-          title: 'Event Trigger',
+          title: 'Trigger Config',
           description: 'Configure when this workflow should run',
           color: 'text-green-500',
           bgColor: 'bg-green-500/10',
@@ -99,7 +44,7 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
       case 'jobNode': {
         return {
           icon: Group,
-          title: 'Job Configuration',
+          title: 'Job Config',
           description: 'Set up job properties and dependencies',
           color: 'text-blue-500',
           bgColor: 'bg-blue-500/10',
@@ -128,34 +73,7 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
         return <TriggerNodeForm node={node} onUpdate={onUpdate} />;
       }
       case 'jobNode': {
-        const jobData = node.data as JobNodeData;
-
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Job Name</Label>
-              <Input
-                id="name"
-                value={jobData.name || ''}
-                placeholder="build, test, deploy"
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">A unique identifier for this job</p>
-            </div>
-            <div>
-              <Label htmlFor="runs-on">Runner Environment</Label>
-              <Input
-                id="runs-on"
-                value={jobData['runs-on'] || ''}
-                placeholder="ubuntu-latest, windows-latest, macos-latest"
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                The type of runner to use for this job
-              </p>
-            </div>
-          </div>
-        );
+        return <JobNodeForm node={node} onUpdate={onUpdate} />;
       }
       default: {
         return (
@@ -182,7 +100,6 @@ export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEdito
             </div>
             <div>
               <h2 className="text-sm font-semibold">{nodeTypeInfo.title}</h2>
-              <p className="text-xs text-muted-foreground">{nodeTypeInfo.description}</p>
             </div>
           </div>
           <Button

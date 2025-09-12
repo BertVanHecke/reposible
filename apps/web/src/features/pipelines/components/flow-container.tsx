@@ -278,6 +278,7 @@ export default function FlowContainer() {
           const jobData: JobNodeData = {
             name: 'new-job',
             'runs-on': 'ubuntu-latest',
+            steps: [{ run: 'echo "Hello, World!"' }],
           };
           newNode = createJobNode(newNodeId, position, jobData);
           break;

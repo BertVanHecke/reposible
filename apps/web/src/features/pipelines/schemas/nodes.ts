@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EdgeSchema, PipelineEdge } from './edges';
-import { Node, Position } from '@xyflow/react';
+import { Node } from '@xyflow/react';
 
 export enum TriggerEvent {
   Push = 'push',
@@ -25,10 +25,29 @@ const TriggerNodeSchema = z.looseObject({
 export type TriggerNodeData = z.infer<typeof TriggerNodeDataSchema>;
 export type TriggerNode = Node<TriggerNodeData, 'triggerNode'>;
 
+export const StepSchema = z.union([
+  z.object({
+    name: z.string().optional(),
+    run: z.string(),
+  }),
+  z.object({
+    name: z.string().optional(),
+    uses: z.string(), // e.g. "actions/checkout@v4"
+  }),
+]);
+
+export const StepsSchema = z.array(StepSchema).min(1, {
+  message: 'You must add at least one step to the job. Please add a step before saving.'
+});
+
+export type Step = z.infer<typeof StepSchema>;
+export type Steps = z.infer<typeof StepsSchema>;
+
 // Job Node
 export const JobNodeDataSchema = z.object({
   name: z.string().min(1, 'Job name is required'),
   'runs-on': z.string().min(1, 'Job runner is required'),
+  steps: StepsSchema,
 });
 
 const JobNodeSchema = z.looseObject({
@@ -39,14 +58,7 @@ const JobNodeSchema = z.looseObject({
 export type JobNodeData = z.infer<typeof JobNodeDataSchema>;
 export type JobNode = Node<JobNodeData, 'jobNode'>;
 
-
-
-
-
-const NodeSchema = z.discriminatedUnion('type', [
-  TriggerNodeSchema,
-  JobNodeSchema,
-]);
+const NodeSchema = z.discriminatedUnion('type', [TriggerNodeSchema, JobNodeSchema]);
 
 // Union of all node types
 export type PipelineNodeType = 'triggerNode' | 'jobNode';
@@ -308,9 +320,4 @@ export function createJobNode(
 }
 
 // Export schemas for use in other parts of the app
-export {
-  NodeSchema,
-  PipelineSchema,
-  TriggerNodeSchema,
-  JobNodeSchema,
-};
+export { NodeSchema, PipelineSchema, TriggerNodeSchema, JobNodeSchema };
