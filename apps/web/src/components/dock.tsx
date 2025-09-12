@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
 } from '@repo/ui/components/base/tooltip';
 import { cn } from '@repo/ui/lib/utils';
-import { FlipHorizontal, FlipVertical, Play, Terminal, Package, Group } from 'lucide-react';
+import { FlipHorizontal, FlipVertical, Play, Group } from 'lucide-react';
 import React from 'react';
 import { Node } from '@xyflow/react';
 

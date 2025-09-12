@@ -1,4 +1,4 @@
-import React, { useId, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -11,7 +11,6 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -19,7 +18,7 @@ import {
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, Trash2, Terminal, Package, X } from 'lucide-react';
+import { GripVertical, Trash2, Terminal, Package, X } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -39,7 +38,6 @@ import {
 import { Input } from '@repo/ui/components/base/input';
 import { Button } from '@repo/ui/components/base/button';
 import { Textarea } from '@repo/ui/components/base/textarea';
-import { Badge } from '@repo/ui/components/base/badge';
 import {
   Tooltip,
   TooltipContent,
@@ -408,7 +406,6 @@ export default function JobNodeForm({
   node: JobNode;
   onUpdate: (nodeId: string, newData: PipelineNodeData) => void;
 }) {
-  const id = useId();
   const form = useForm<JobNodeData>({
     resolver: zodResolver(JobNodeDataSchema),
     defaultValues: {
@@ -519,7 +516,7 @@ export default function JobNodeForm({
           <FormField
             control={form.control}
             name="steps"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <div className="grid gap-2">
                   <FormLabel>Steps ({fields.length})</FormLabel>

@@ -1,13 +1,12 @@
 import {
   JobNode,
   PipelineNode,
-  RunNode,
   TriggerEvent,
   TriggerNode,
-  UsesNode,
+  Step,
 } from '@/features/pipelines/schemas/nodes';
 import { PipelineEdge } from '@/features/pipelines/schemas/edges';
-import { Job, Jobs, RunStep, Trigger, UsesStep } from './schemas/nodes';
+import { Job, Jobs, Trigger } from './schemas/nodes';
 import { Workflow } from './schemas/workflow';
 import { Document } from 'yaml';
 
@@ -33,12 +32,11 @@ export class PipelineWorkflowConverter {
   private buildWorkflowStructure(nodes: PipelineNode[], edges: PipelineEdge[]): Workflow {
     const triggerNodes = this.filterNodesByType(nodes, 'triggerNode');
     const jobNodes = this.filterNodesByType(nodes, 'jobNode');
-    const stepNodes = this.filterNodesByType(nodes, ['runNode', 'usesNode']);
 
     const workflow: Workflow = {
       name: 'Generated Pipeline',
       on: this.buildTriggers(triggerNodes),
-      jobs: this.buildJobs(jobNodes, stepNodes, edges),
+      jobs: this.buildJobs(jobNodes, edges),
     };
 
     return workflow;
@@ -91,45 +89,49 @@ export class PipelineWorkflowConverter {
    */
   private ensureArray(value: string[] | string | undefined): string[] {
     if (!value) return [];
-    
+
     if (Array.isArray(value)) {
       // Handle array that might contain comma-separated strings
-      return value.flatMap(item => 
-        typeof item === 'string' 
-          ? item.split(/,\s*/).map(s => s.trim()).filter(Boolean)
+      return value.flatMap((item) =>
+        typeof item === 'string'
+          ? item
+              .split(/,\s*/)
+              .map((s) => s.trim())
+              .filter(Boolean)
           : []
       );
     }
-    
+
     if (typeof value === 'string') {
       // Handle comma-separated string
-      return value.split(/,\s*/).map(s => s.trim()).filter(Boolean);
+      return value
+        .split(/,\s*/)
+        .map((s) => s.trim())
+        .filter(Boolean);
     }
-    
+
     return [];
   }
 
   /**
-   * Build jobs configuration from job and step nodes
+   * Build jobs configuration from job nodes
    */
-  private buildJobs(
-    jobNodes: Extract<PipelineNode, JobNode>[],
-    stepNodes: Extract<PipelineNode, RunNode | UsesNode>[],
-    edges: PipelineEdge[]
-  ) {
+  private buildJobs(jobNodes: Extract<PipelineNode, JobNode>[], edges: PipelineEdge[]) {
     const jobs: Jobs = {};
     const usedJobNames = new Set<string>();
 
     // Process each job
     jobNodes.forEach((jobNode) => {
-      const connectedSteps = this.getConnectedSteps(jobNode.id, stepNodes, edges);
-
       const job: Job = {
         'runs-on': jobNode.data['runs-on'],
+        steps: this.buildSteps(jobNode.data.steps),
       };
 
-      if (connectedSteps.length > 0) {
-        job.steps = this.convertStepsToJobSteps(connectedSteps);
+      // Add dependencies if this job depends on other jobs
+      const dependencies = this.findJobDependencies(jobNode.id, jobNodes, edges);
+      if (dependencies.length > 0) {
+        // TypeScript workaround: needs is a valid GitHub Actions property but not in our schema
+        (job as any).needs = dependencies;
       }
 
       // Validate job name uniqueness
@@ -139,6 +141,53 @@ export class PipelineWorkflowConverter {
     });
 
     return jobs;
+  }
+
+  /**
+   * Build steps array from job step data
+   */
+  private buildSteps(steps: Step[]) {
+    return steps.map((step) => {
+      if ('run' in step) {
+        // Run step
+        const runStep: any = { run: step.run };
+        if (step.name) {
+          runStep.name = step.name;
+        }
+        return runStep;
+      } else if ('uses' in step) {
+        // Action step
+        const actionStep: any = { uses: step.uses };
+        if (step.name) {
+          actionStep.name = step.name;
+        }
+        return actionStep;
+      }
+      throw new Error(`Invalid step type: ${JSON.stringify(step)}`);
+    });
+  }
+
+  /**
+   * Find job dependencies by looking at edges
+   */
+  private findJobDependencies(
+    jobId: string,
+    jobNodes: Extract<PipelineNode, JobNode>[],
+    edges: PipelineEdge[]
+  ): string[] {
+    const jobNodeIds = new Set(jobNodes.map((node) => node.id));
+    
+    // Find edges that point to this job from other jobs
+    const dependencies = edges
+      .filter((edge) => edge.target === jobId && jobNodeIds.has(edge.source))
+      .map((edge) => {
+        const sourceJob = jobNodes.find((job) => job.id === edge.source);
+        if (!sourceJob) return null;
+        return sourceJob.data.name.toLowerCase();
+      })
+      .filter((name): name is string => name !== null);
+
+    return [...new Set(dependencies)]; // Remove duplicates
   }
 
   /**
@@ -154,7 +203,9 @@ export class PipelineWorkflowConverter {
     const invalidCharacters = /[^a-zA-Z0-9_-]/;
     if (invalidCharacters.test(jobName)) {
       const firstInvalidChar = jobName.match(invalidCharacters)?.[0];
-      throw new Error(`Job name "${jobName}" contains invalid character "${firstInvalidChar}". Only letters, numbers, hyphens, and underscores are allowed.`);
+      throw new Error(
+        `Job name "${jobName}" contains invalid character "${firstInvalidChar}". Only letters, numbers, hyphens, and underscores are allowed.`
+      );
     }
 
     // Convert to lowercase for GitHub Actions compatibility
@@ -162,240 +213,12 @@ export class PipelineWorkflowConverter {
 
     // Check for uniqueness
     if (usedNames.has(normalizedName)) {
-      throw new Error(`Duplicate job name "${normalizedName}" detected. Job names must be unique within a workflow.`);
+      throw new Error(
+        `Duplicate job name "${normalizedName}" detected. Job names must be unique within a workflow.`
+      );
     }
 
     return normalizedName;
   }
 
-  /**
-   * Get all steps connected to a job (steps that execute within this job only)
-   */
-  private getConnectedSteps(
-    jobId: string,
-    stepNodes: (RunNode | UsesNode)[],
-    edges: PipelineEdge[]
-  ) {
-    const jobSteps: (RunNode | UsesNode)[] = [];
-    const allJobIds = new Set(this.getAllJobIds(edges));
-
-    // Find steps directly connected to this job
-    const directSteps = stepNodes.filter((step) =>
-      edges.some((edge) => edge.source === jobId && edge.target === step.id)
-    );
-
-    // For each direct step, follow the execution chain until we hit a job boundary
-    const visitedGlobally = new Set<string>();
-    directSteps.forEach((step) => {
-      this.collectStepsInJobChain(step, stepNodes, edges, jobSteps, visitedGlobally, allJobIds);
-    });
-
-    // Sort steps to maintain execution order
-    return this.sortStepsByExplicitOrder(jobSteps, edges)
-  }
-
-  /**
-   * Get all job IDs from the edges to help identify job boundaries
-   */
-  private getAllJobIds(edges: PipelineEdge[]): string[] {
-    const jobIds = new Set<string>();
-    edges.forEach((edge) => {
-      if (edge.source.startsWith('job-')) jobIds.add(edge.source);
-      if (edge.target.startsWith('job-')) jobIds.add(edge.target);
-    });
-    return Array.from(jobIds);
-  }
-
-  /**
-   * Collect steps that belong to this job by following execution chains until job boundaries
-   */
-  private collectStepsInJobChain(
-    currentStep: RunNode | UsesNode,
-    stepNodes: (RunNode | UsesNode)[],
-    edges: PipelineEdge[],
-    jobSteps: (RunNode | UsesNode)[],
-    visitedGlobally: Set<string>,
-    allJobIds: Set<string>
-  ): void {
-    // Don't process already visited steps (prevents infinite loops and double-counting)
-    if (visitedGlobally.has(currentStep.id)) {
-      return;
-    }
-
-    visitedGlobally.add(currentStep.id);
-
-    // Check if this step connects to another job
-    const connectsToJob = edges.some(
-      (edge) => edge.source === currentStep.id && allJobIds.has(edge.target)
-    );
-
-    // This step belongs to the current job
-    jobSteps.push(currentStep);
-
-    // If this step connects to another job, stop here (this is the boundary)
-    if (connectsToJob) {
-      return;
-    }
-
-    // Find next steps in the execution chain
-    const nextSteps = stepNodes.filter(
-      (step) =>
-        !visitedGlobally.has(step.id) &&
-        edges.some((edge) => edge.source === currentStep.id && edge.target === step.id)
-    );
-
-    // Continue following the chain for each next step
-    nextSteps.forEach((nextStep) => {
-      this.collectStepsInJobChain(nextStep, stepNodes, edges, jobSteps, visitedGlobally, allJobIds);
-    });
-  }
-
-  /**
-   * Sort steps by explicit order values with validation
-   */
-  private sortStepsByExplicitOrder(
-    steps: (RunNode | UsesNode)[],
-    edges: PipelineEdge[]
-  ): (RunNode | UsesNode)[] {
-    // Separate steps with and without explicit order
-    const stepsWithOrder = steps.filter(step => step.data.order !== undefined);
-    const stepsWithoutOrder = steps.filter(step => step.data.order === undefined);
-    
-    // Check for duplicate order values
-    const orderValues = stepsWithOrder.map(step => step.data.order!);
-    const duplicateOrders = orderValues.filter((order, index) => orderValues.indexOf(order) !== index);
-    
-    if (duplicateOrders.length > 0) {
-      throw new Error(`Duplicate step order values found: ${duplicateOrders.join(', ')}. Each step must have a unique order value.`);
-    }
-    
-    // Sort steps with explicit order
-    const sortedWithOrder = stepsWithOrder.sort((a, b) => a.data.order! - b.data.order!);
-    
-    // For steps without order, use topological sort and append them
-    const sortedWithoutOrder = stepsWithoutOrder.length > 0 
-      ? this.sortStepsByTopology(stepsWithoutOrder, edges)
-      : [];
-    
-    // Validate that explicit ordering doesn't conflict with edge dependencies
-    this.validateOrderAgainstDependencies([...sortedWithOrder, ...sortedWithoutOrder], edges);
-    
-    return [...sortedWithOrder, ...sortedWithoutOrder];
-  }
-
-  /**
-   * Sort steps using topological sort based on edge dependencies
-   */
-  private sortStepsByTopology(
-    steps: (RunNode | UsesNode)[],
-    edges: PipelineEdge[]
-  ): (RunNode | UsesNode)[] {
-    // Simple topological sort for steps within this job
-    const sorted: (RunNode | UsesNode)[] = [];
-    const visited = new Set<string>();
-    const stepIds = new Set(steps.map((s) => s.id));
-
-    const visit = (step: RunNode | UsesNode) => {
-      if (visited.has(step.id)) return;
-      visited.add(step.id);
-
-      // Find dependencies (incoming edges from other steps in this job)
-      const dependencies = steps.filter((s) =>
-        edges.some((edge) => edge.source === s.id && edge.target === step.id)
-      );
-
-      dependencies.forEach((dep) => visit(dep));
-      sorted.push(step);
-    };
-
-    // Start with steps that have no dependencies within this job
-    const rootSteps = steps.filter(
-      (step) => !edges.some((edge) => edge.target === step.id && stepIds.has(edge.source))
-    );
-
-    rootSteps.forEach((step) => visit(step));
-
-    // Add any remaining steps
-    steps.forEach((step) => visit(step));
-
-    return sorted;
-  }
-
-  /**
-   * Validate that explicit ordering doesn't conflict with edge dependencies
-   */
-  private validateOrderAgainstDependencies(
-    sortedSteps: (RunNode | UsesNode)[],
-    edges: PipelineEdge[]
-  ): void {
-    const stepPositions = new Map<string, number>();
-    sortedSteps.forEach((step, index) => {
-      stepPositions.set(step.id, index);
-    });
-
-    // Check each edge to ensure dependencies are satisfied
-    for (const edge of edges) {
-      const sourcePos = stepPositions.get(edge.source);
-      const targetPos = stepPositions.get(edge.target);
-      
-      if (sourcePos !== undefined && targetPos !== undefined && sourcePos >= targetPos) {
-        const sourceStep = sortedSteps.find(s => s.id === edge.source);
-        const targetStep = sortedSteps.find(s => s.id === edge.target);
-        throw new Error(
-          `Step ordering conflict: Step "${targetStep?.data.name || targetStep?.id}" (order ${targetStep?.data.order || 'auto'}) ` +
-          `depends on step "${sourceStep?.data.name || sourceStep?.id}" (order ${sourceStep?.data.order || 'auto'}), ` +
-          `but the dependency comes after it in the execution order.`
-        );
-      }
-    }
-  }
-
-  /**
-   * Convert step nodes to GitHub Actions job steps format
-   */
-  private convertStepsToJobSteps(stepNodes: (RunNode | UsesNode)[]): (RunStep | UsesStep)[] {
-    return stepNodes.map((step) => {
-      if (step.type === 'usesNode') {
-        return this.buildUsesStep(step);
-      } else if (step.type === 'runNode') {
-        return this.buildRunStep(step);
-      } else {
-        throw new Error(`Unsupported step: ${JSON.stringify(step)}`);
-      }
-    });
-  }
-
-  /**
-   * Build a 'uses' step
-   */
-  private buildUsesStep(step: UsesNode): UsesStep {
-    const stepData: UsesStep = {
-        uses: step.data.uses
-    }
-
-    if (step.data.name) {
-      stepData.name = step.data.name;
-    }
-
-    if (step.data.with && Object.keys(step.data.with).length > 0) {
-      stepData.with = step.data.with;
-    }
-
-    return stepData;
-  }
-
-  /**
-   * Build a 'run' step
-   */
-  private buildRunStep(step: RunNode): RunStep {
-    const stepData: RunStep = {
-      run: step.data.run
-    };
-
-    if (step.data.name) {
-      stepData.name = step.data.name;
-    }
-
-    return stepData;
-  }
 }

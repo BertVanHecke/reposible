@@ -434,20 +434,6 @@ export default function FlowContainer() {
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: PipelineNode) => {
       setSelectedNode(node);
-
-      // Center the selected node on the canvas
-      fitView({
-        nodes: [{ id: node.id }],
-        duration: 300,
-        padding: 0.3,
-      });
-    },
-    [fitView]
-  );
-
-  const onNodeDoubleClick = useCallback(
-    (event: React.MouseEvent, node: PipelineNode) => {
-      setSelectedNode(node);
       setIsPanelOpen(true);
 
       // Center the selected node on the canvas
@@ -462,21 +448,24 @@ export default function FlowContainer() {
 
   const onClosePanel = useCallback(() => {
     setIsPanelOpen(false);
-    setSelectedNode(null);
-
-    // Zoom back out to show all nodes when closing the panel
-    fitView({
-      duration: 300,
-      padding: 0.2,
-    });
-  }, [fitView]);
+  }, []);
 
   const onPaneClick = useCallback(() => {
     // Close the panel when clicking on the canvas background
     if (isPanelOpen) {
       onClosePanel();
     }
-  }, [isPanelOpen, onClosePanel]);
+
+    if (selectedNode) {
+      setSelectedNode(null);
+    }
+
+    // Center the selected node on the canvas
+    fitView({
+      duration: 300,
+      padding: 0.3,
+    });
+  }, [isPanelOpen, selectedNode, onClosePanel, fitView]);
 
   // Update node data
   const onUpdateNodeData = useCallback(
@@ -518,7 +507,6 @@ export default function FlowContainer() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
-        onNodeDoubleClick={onNodeDoubleClick}
         onPaneClick={onPaneClick}
         fitViewOptions={fitViewOptions}
         defaultEdgeOptions={defaultEdgeOptions}

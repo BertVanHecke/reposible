@@ -3,8 +3,6 @@
 import React from 'react';
 import { Button } from '@repo/ui/components/base/button';
 import { Play, Group, Package, X, Trash2 } from 'lucide-react';
-import { KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 import { PipelineNode, PipelineNodeData } from '../../schemas/nodes';
 import { PipelineEdge } from '../../schemas/edges';
@@ -21,14 +19,6 @@ interface NodeEditorPanelProps {
 }
 
 export function NodeEditorPanel({ node, onUpdate, onClose, onDelete }: NodeEditorPanelProps) {
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   const getNodeTypeInfo = () => {
     switch (node.type) {
       case 'triggerNode': {
