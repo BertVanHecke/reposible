@@ -477,13 +477,16 @@ export default function FlowContainer() {
       // Validate after data update
       const isValid = validateAndNotify(newNodes, edges, 'updating node data');
 
-      if (!isValid) {
-        console.error('not valid');
+      if (isValid) {
+        setNodes(newNodes);
+        toast.success('Node updated successfully');
+        return;
+      } else {
+        toast.error('Node update failed');
         return;
       }
 
       // Apply changes regardless (user should be able to edit)
-      setNodes(newNodes);
     },
     [setNodes, nodes, edges, validateAndNotify]
   );

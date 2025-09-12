@@ -134,10 +134,6 @@ interface StepFormProps {
   onAddStep: (step: Step) => void;
 }
 
-interface StepFormProps {
-  onAddStep: (step: Step) => void;
-}
-
 function StepForm({ onAddStep }: StepFormProps) {
   const [showRunForm, setShowRunForm] = useState(false);
   const [showActionForm, setShowActionForm] = useState(false);
@@ -449,6 +445,7 @@ export default function JobNodeForm({
   };
 
   const onSubmit = (data: JobNodeData) => {
+    console.log('Form submitted with data:', data);
     onUpdate(node.id, data);
   };
 

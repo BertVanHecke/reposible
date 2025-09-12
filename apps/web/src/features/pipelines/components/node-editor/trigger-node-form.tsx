@@ -50,13 +50,18 @@ export default function TriggerNodeForm({
   });
 
   const onSubmit = (data: TriggerNodeData) => {
+    console.log('Form submitted with data:', data);
     onUpdate(node.id, data);
+  };
+
+  const onError = (errors: any) => {
+    console.error('Form errors:', errors);
   };
 
   return (
     <div className="space-y-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
           <FormField
             control={form.control}
             name="event"
