@@ -5,6 +5,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@repo/ui/componen
 
 interface RunNodeData {
   run: string;
+  order?: number;
+  name?: string;
 }
 
 const CircularRunNode: React.FC<NodeProps> = ({ data }) => {
@@ -26,8 +28,18 @@ const CircularRunNode: React.FC<NodeProps> = ({ data }) => {
                 className="w-3 h-3 !bg-pink-500 border-2 border-white !right-[-4px]"
               />
               <Terminal className="w-8 h-8 text-white" />
+              
+              {/* Order indicator - now always present */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-pink-700 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                {nodeData.order || 1}
+              </div>
             </div>
-            <span className="text-xs font-semibold text-foreground">Command</span>
+            <div className="text-center">
+              <span className="text-xs font-semibold text-foreground">
+                {nodeData.name || 'Command'}
+              </span>
+              <div className="text-xs text-muted-foreground">Step {nodeData.order || 1}</div>
+            </div>
           </div>
         </HoverCardTrigger>
 
@@ -49,9 +61,21 @@ const CircularRunNode: React.FC<NodeProps> = ({ data }) => {
 
             <div className="border-t pt-3">
               <div className="space-y-2">
-                <span className="text-xs font-medium text-muted-foreground">COMMAND</span>
-                <div className="bg-muted p-3 rounded-md font-mono text-xs overflow-x-auto">
-                  <pre className="whitespace-pre-wrap break-words">{nodeData.run}</pre>
+                {nodeData.name && (
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground">STEP NAME</span>
+                    <div className="text-sm font-medium">{nodeData.name}</div>
+                  </div>
+                )}
+                <div>
+                  <span className="text-xs font-medium text-muted-foreground">EXECUTION ORDER</span>
+                  <div className="text-sm font-medium">Step {nodeData.order || 1}</div>
+                </div>
+                <div>
+                  <span className="text-xs font-medium text-muted-foreground">COMMAND</span>
+                  <div className="bg-muted p-3 rounded-md font-mono text-xs overflow-x-auto">
+                    <pre className="whitespace-pre-wrap break-words">{nodeData.run}</pre>
+                  </div>
                 </div>
               </div>
             </div>

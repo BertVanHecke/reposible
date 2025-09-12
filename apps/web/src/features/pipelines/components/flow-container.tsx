@@ -22,7 +22,7 @@ import CircularRunNode from './nodes/circular-run-node';
 import CircularUsesNode from './nodes/circular-uses-node';
 import CircularJobNode from './nodes/circular-job-node';
 import CircularTriggerNode from './nodes/circular-trigger-node';
-import { NodeEditorPanel } from './node-editor-panel';
+import { NodeEditorPanel } from './node-editor/node-editor-panel';
 
 import dagre from '@dagrejs/dagre';
 import { FlowDock } from '@/components/dock';
@@ -31,15 +31,13 @@ import {
   validateFlowData,
   createTriggerNode,
   createJobNode,
-  createRunNode,
-  createUsesNode,
   TriggerNodeData,
   JobNodeData,
-  RunNodeData,
-  UsesNodeData,
   PipelineNodeData,
+  TriggerEvent,
 } from '../schemas/nodes';
 import { PipelineEdge } from '../schemas/edges';
+import { PipelineWorkflowConverter } from '@/lib/export/workflow-converter';
 
 const nodeTypes = {
   runNode: CircularRunNode,
@@ -146,15 +144,15 @@ export default function FlowContainer() {
         console.warn('Pipeline validation errors:', validation.errors);
         return false;
       } else {
-        console.log(`Pipeline validation succeeded after ${action}`);
+        // console.log(`Pipeline validation succeeded after ${action}`);
         return true;
       }
     },
     []
   );
 
-  // Validation function for export
-  const handleExport = useCallback(() => {
+  // Validation function for YAML export
+  const handleExportYAML = useCallback(() => {
     const validation = validateCurrentPipeline();
 
     if (!validation.isValid) {
@@ -163,27 +161,68 @@ export default function FlowContainer() {
       return;
     }
 
-    // Export logic here
-    const exportData = {
-      nodes: validation.isValid ? nodes : [],
-      edges: validation.isValid ? edges : [],
-      metadata: {
-        name: 'Pipeline Export',
-        description: 'Generated from Reposible pipeline builder',
-        version: '1.0.0',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    };
+    try {
+      // Convert pipeline to GitHub Actions workflow YAML
+      const converter = new PipelineWorkflowConverter();
+      const workflowYaml = converter.convertToWorkflowYaml(nodes, edges);
 
-    // Download as JSON
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'pipeline.json';
-    a.click();
-    URL.revokeObjectURL(url);
+      // Download as YAML
+      const blob = new Blob([workflowYaml], { type: 'text/yaml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'workflow.yml';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast.success('Pipeline exported as GitHub Actions workflow!');
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to export pipeline: ${error.message}`);
+      } else {
+        toast.error('Failed to export pipeline. Unexpected error occurred.');
+      }
+    }
+  }, [validateCurrentPipeline, nodes, edges]);
+
+  // Validation function for JSON export
+  const handleExportJSON = useCallback(() => {
+    const validation = validateCurrentPipeline();
+
+    if (!validation.isValid) {
+      // Show validation errors to user
+      toast.error(`Pipeline has validation errors:\n${validation.errors.join('\n')}`);
+      return;
+    }
+
+    try {
+      // Export logic here
+      const exportData = {
+        nodes: validation.isValid ? nodes : [],
+        edges: validation.isValid ? edges : [],
+        metadata: {
+          name: 'Pipeline Export',
+          description: 'Generated from Reposible pipeline builder',
+          version: '1.0.0',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+
+      // Download as JSON
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pipeline.json';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast.success('Pipeline exported as JSON!');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export pipeline. Please check the console for details.');
+    }
   }, [validateCurrentPipeline, nodes, edges]);
 
   const relayout = useCallback(
@@ -235,20 +274,6 @@ export default function FlowContainer() {
 
       // Create typed node based on nodeType
       switch (nodeType) {
-        case 'runNode': {
-          const runData: RunNodeData = {
-            run: 'echo "New step"',
-          };
-          newNode = createRunNode(newNodeId, position, runData);
-          break;
-        }
-        case 'usesNode': {
-          const usesData: UsesNodeData = {
-            uses: 'actions/checkout@v4',
-          };
-          newNode = createUsesNode(newNodeId, position, usesData);
-          break;
-        }
         case 'jobNode': {
           const jobData: JobNodeData = {
             name: 'new-job',
@@ -303,7 +328,7 @@ export default function FlowContainer() {
 
       if (nodeType === 'triggerNode') {
         const triggerData: TriggerNodeData = {
-          event: 'push',
+          event: TriggerEvent.Push,
           branches: ['main'],
         };
         newNode = createTriggerNode(newNodeId, position, triggerData);
@@ -456,19 +481,15 @@ export default function FlowContainer() {
   const onUpdateNodeData = useCallback(
     (nodeId: string, newData: PipelineNodeData) => {
       const newNodes = nodes.map((node) =>
-        node.id === nodeId
-          ? ({ ...node, data: newData } as PipelineNode)
-          : node
+        node.id === nodeId ? ({ ...node, data: newData } as PipelineNode) : node
       );
 
       // Validate after data update
       const isValid = validateAndNotify(newNodes, edges, 'updating node data');
 
       if (!isValid) {
-        toast.warning('Node data updated but pipeline now has issues', {
-          description: 'Check the validation errors in the console',
-          duration: 5000,
-        });
+        console.error('not valid');
+        return;
       }
 
       // Apply changes regardless (user should be able to edit)
@@ -504,8 +525,11 @@ export default function FlowContainer() {
       >
         <Panel position="top-right">
           <div className="flex gap-2">
-            <Button variant={'outline'} onClick={handleExport}>
-              Export
+            <Button variant={'outline'} onClick={handleExportYAML}>
+              Export YAML
+            </Button>
+            <Button variant={'outline'} onClick={handleExportJSON}>
+              Export JSON
             </Button>
           </div>
         </Panel>
@@ -530,6 +554,8 @@ export default function FlowContainer() {
         {selectedNode && (
           <NodeEditorPanel
             node={selectedNode}
+            nodes={nodes}
+            edges={edges}
             onUpdate={onUpdateNodeData}
             onClose={onClosePanel}
             onDelete={() => onDeleteNode(selectedNode.id)}

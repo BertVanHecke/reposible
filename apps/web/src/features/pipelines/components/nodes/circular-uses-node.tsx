@@ -6,6 +6,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@repo/ui/componen
 interface UsesNodeData {
   uses: string;
   with?: Record<string, number | string | object>;
+  order?: number;
+  name?: string;
 }
 
 const CircularUsesNode: React.FC<NodeProps> = ({ data }) => {
@@ -28,8 +30,18 @@ const CircularUsesNode: React.FC<NodeProps> = ({ data }) => {
                 className="w-3 h-3 !bg-purple-500 border-2 border-white !right-[-4px]"
               />
               <Package className="w-8 h-8 text-white" />
+              
+              {/* Order indicator - now always present */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                {nodeData.order || 1}
+              </div>
             </div>
-            <span className="text-xs font-semibold text-foreground">Action</span>
+            <div className="text-center">
+              <span className="text-xs font-semibold text-foreground">
+                {nodeData.name || 'Action'}
+              </span>
+              <div className="text-xs text-muted-foreground">Step {nodeData.order || 1}</div>
+            </div>
           </div>
         </HoverCardTrigger>
 
@@ -51,6 +63,16 @@ const CircularUsesNode: React.FC<NodeProps> = ({ data }) => {
 
             <div className="border-t pt-3">
               <div className="space-y-3">
+                {nodeData.name && (
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground">STEP NAME</span>
+                    <div className="text-sm font-medium">{nodeData.name}</div>
+                  </div>
+                )}
+                <div>
+                  <span className="text-xs font-medium text-muted-foreground">EXECUTION ORDER</span>
+                  <div className="text-sm font-medium">Step {nodeData.order || 1}</div>
+                </div>
                 <div>
                   <span className="text-xs font-medium text-muted-foreground">ACTION</span>
                   <div className="bg-muted p-2 rounded-md font-mono text-xs mt-1">

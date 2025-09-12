@@ -2,10 +2,15 @@ import { z } from 'zod';
 import { EdgeSchema, PipelineEdge } from './edges';
 import { Node, Position } from '@xyflow/react';
 
+export enum TriggerEvent {
+  Push = 'push',
+  PullRequest = 'pull_request',
+}
+
 // Specific node type schemas that extend React Flow's Node
 // 1) Data schema for your custom fields
 export const TriggerNodeDataSchema = z.object({
-  event: z.string().min(1, 'Trigger event is required'),
+  event: z.enum(TriggerEvent),
   branches: z.array(z.string()).optional(),
 });
 
@@ -34,44 +39,19 @@ const JobNodeSchema = z.looseObject({
 export type JobNodeData = z.infer<typeof JobNodeDataSchema>;
 export type JobNode = Node<JobNodeData, 'jobNode'>;
 
-// Run Node
-export const RunNodeDataSchema = z.object({
-  run: z.string().min(1, 'Run command is required'),
-});
 
-const RunNodeSchema = z.looseObject({
-  type: z.literal('runNode'),
-  data: RunNodeDataSchema,
-});
 
-export type RunNodeData = z.infer<typeof RunNodeDataSchema>;
-export type RunNode = Node<RunNodeData, 'runNode'>;
 
-// Uses Node
-export const UsesNodeDataSchema = z.object({
-  uses: z.string().min(1, 'Action to use is required'),
-  with: z.record(z.string(), z.any()).optional(),
-});
-
-const UsesNodeSchema = z.looseObject({
-  type: z.literal('usesNode'),
-  data: UsesNodeDataSchema,
-});
-
-export type UsesNodeData = z.infer<typeof UsesNodeDataSchema>;
-export type UsesNode = Node<UsesNodeData, 'usesNode'>;
 
 const NodeSchema = z.discriminatedUnion('type', [
   TriggerNodeSchema,
   JobNodeSchema,
-  RunNodeSchema,
-  UsesNodeSchema,
 ]);
 
 // Union of all node types
-export type PipelineNodeType = 'triggerNode' | 'jobNode' | 'runNode' | 'usesNode';
-export type PipelineNodeData = TriggerNodeData | JobNodeData | RunNodeData | UsesNodeData;
-export type PipelineNode = TriggerNode | JobNode | RunNode | UsesNode;
+export type PipelineNodeType = 'triggerNode' | 'jobNode';
+export type PipelineNodeData = TriggerNodeData | JobNodeData;
+export type PipelineNode = TriggerNode | JobNode;
 
 // Pipeline metadata schema
 const PipelineMetadataSchema = z.object({
@@ -327,40 +307,10 @@ export function createJobNode(
   return newNode;
 }
 
-export function createRunNode(id: string, position: { x: number; y: number }, data: RunNodeData) {
-  const newNode: RunNode = {
-    id,
-    type: 'runNode',
-    position,
-    data,
-    targetPosition: Position.Left,
-    sourcePosition: Position.Right,
-  };
-
-  return newNode;
-}
-
-export function createUsesNode(
-  id: string,
-  position: { x: number; y: number },
-  data: UsesNodeData
-): UsesNode {
-  const newNode: UsesNode = {
-    id,
-    type: 'usesNode',
-    position,
-    data,
-  };
-
-  return newNode;
-}
-
 // Export schemas for use in other parts of the app
 export {
   NodeSchema,
   PipelineSchema,
   TriggerNodeSchema,
   JobNodeSchema,
-  RunNodeSchema,
-  UsesNodeSchema,
 };
