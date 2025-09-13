@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
 } from '@repo/ui/components/base/tooltip';
 import { cn } from '@repo/ui/lib/utils';
-import { FlipHorizontal, FlipVertical, Play, Terminal, Package, Group } from 'lucide-react';
+import { FlipHorizontal, FlipVertical, Play, Group } from 'lucide-react';
 import React from 'react';
 import { Node } from '@xyflow/react';
 
@@ -27,66 +27,6 @@ const NODE_TYPE_OPTIONS = {
     },
   ],
   jobNode: [
-    {
-      icon: Terminal,
-      label: 'Add Run Command',
-      color: 'text-pink-500',
-      hoverBg: 'hover:bg-pink-500',
-      hoverBorder: 'hover:border-pink-600',
-      nodeType: 'runNode' as const,
-    },
-    {
-      icon: Package,
-      label: 'Add Action',
-      color: 'text-purple-500',
-      hoverBg: 'hover:bg-purple-500',
-      hoverBorder: 'hover:border-purple-600',
-      nodeType: 'usesNode' as const,
-    },
-  ],
-  runNode: [
-    {
-      icon: Terminal,
-      label: 'Add Run Command',
-      color: 'text-pink-500',
-      hoverBg: 'hover:bg-pink-500',
-      hoverBorder: 'hover:border-pink-600',
-      nodeType: 'runNode' as const,
-    },
-    {
-      icon: Package,
-      label: 'Add Action',
-      color: 'text-purple-500',
-      hoverBg: 'hover:bg-purple-500',
-      hoverBorder: 'hover:border-purple-600',
-      nodeType: 'usesNode' as const,
-    },
-    {
-      icon: Group,
-      label: 'Add Job',
-      color: 'text-blue-500',
-      hoverBg: 'hover:bg-blue-500',
-      hoverBorder: 'hover:border-blue-600',
-      nodeType: 'jobNode' as const,
-    },
-  ],
-  usesNode: [
-    {
-      icon: Terminal,
-      label: 'Add Run Command',
-      color: 'text-pink-500',
-      hoverBg: 'hover:bg-pink-500',
-      hoverBorder: 'hover:border-pink-600',
-      nodeType: 'runNode' as const,
-    },
-    {
-      icon: Package,
-      label: 'Add Action',
-      color: 'text-purple-500',
-      hoverBg: 'hover:bg-purple-500',
-      hoverBorder: 'hover:border-purple-600',
-      nodeType: 'usesNode' as const,
-    },
     {
       icon: Group,
       label: 'Add Job',
@@ -124,7 +64,7 @@ export function FlowDock({
 }: {
   onLayout: (direction: 'TB' | 'LR') => void;
   onAddNode: (nodeType: 'triggerNode') => void;
-  onAddNodeAfter: (sourceNodeId: string, nodeType: 'runNode' | 'usesNode' | 'jobNode') => void;
+  onAddNodeAfter: (sourceNodeId: string, nodeType: 'jobNode') => void;
   hasNodes?: boolean;
   selectedNode?: Node | null;
 }) {
