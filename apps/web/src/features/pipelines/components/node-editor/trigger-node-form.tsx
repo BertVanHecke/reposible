@@ -70,7 +70,7 @@ export default function TriggerNodeForm({
                 <FormLabel htmlFor={id}>Event Type</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger id={id} className="**:data-desc:hidden w-full">
+                    <SelectTrigger id={id} className="[&_*[data-desc]]:hidden w-full">
                       <SelectValue placeholder="Select event type" />
                     </SelectTrigger>
                   </FormControl>
