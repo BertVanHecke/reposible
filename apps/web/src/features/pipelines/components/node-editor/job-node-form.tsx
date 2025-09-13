@@ -442,6 +442,9 @@ export default function JobNodeForm({
 
   const addStep = (step: Step) => {
     append(step);
+    // Get current form values and update with the new step
+    const currentValues = form.getValues();
+    onUpdate(node.id, currentValues);
   };
 
   const onSubmit = (data: JobNodeData) => {

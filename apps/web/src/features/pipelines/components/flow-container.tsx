@@ -18,8 +18,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@repo/ui/components/base/button';
 import { toast } from 'sonner';
-import CircularRunNode from './nodes/circular-run-node';
-import CircularUsesNode from './nodes/circular-uses-node';
 import CircularJobNode from './nodes/circular-job-node';
 import CircularTriggerNode from './nodes/circular-trigger-node';
 import { NodeEditorPanel } from './node-editor/node-editor-panel';
@@ -40,8 +38,6 @@ import { PipelineEdge } from '../schemas/edges';
 import { PipelineWorkflowConverter } from '@/lib/export/workflow-converter';
 
 const nodeTypes = {
-  runNode: CircularRunNode,
-  usesNode: CircularUsesNode,
   jobNode: CircularJobNode,
   triggerNode: CircularTriggerNode,
 };
@@ -470,6 +466,7 @@ export default function FlowContainer() {
   // Update node data
   const onUpdateNodeData = useCallback(
     (nodeId: string, newData: PipelineNodeData) => {
+      console.log(nodeId, newData);
       const newNodes = nodes.map((node) =>
         node.id === nodeId ? ({ ...node, data: newData } as PipelineNode) : node
       );
